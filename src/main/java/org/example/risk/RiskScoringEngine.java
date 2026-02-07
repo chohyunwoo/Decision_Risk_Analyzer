@@ -1,5 +1,8 @@
 package org.example.risk;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class RiskScoringEngine {
     public int score(FoodDecisionInput input) {
         int timeRisk = 0;

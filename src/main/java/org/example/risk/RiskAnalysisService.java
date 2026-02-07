@@ -1,5 +1,8 @@
 package org.example.risk;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class RiskAnalysisService {
     private final RiskScoringEngine engine;
 
