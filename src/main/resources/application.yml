@@ -18,3 +18,6 @@
 app:
   jwt:
     secret: ${JWT_SECRET:dev-secret-please-change-32-bytes-minimum}
+  openai:
+    model: ${OPENAI_MODEL:gpt-5.2}
+    timeoutSeconds: ${OPENAI_TIMEOUT_SECONDS:8}

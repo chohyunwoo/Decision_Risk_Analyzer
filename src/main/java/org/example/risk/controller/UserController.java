@@ -1,4 +1,4 @@
-﻿package org.example.risk.controller;
+package org.example.risk.controller;
 
 import org.example.risk.dto.UserMeResponse;
 import org.example.risk.security.UserPrincipal;

@@ -1,4 +1,4 @@
-﻿package org.example.risk.error;
+package org.example.risk.error;
 
 public final class ErrorCodes {
     public static final String UNAUTHORIZED = "UNAUTHORIZED";

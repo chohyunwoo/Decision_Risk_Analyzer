@@ -1,4 +1,4 @@
-﻿package org.example.risk.service;
+package org.example.risk.service;
 
 import java.util.EnumMap;
 import java.util.Map;

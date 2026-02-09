@@ -1,4 +1,4 @@
-﻿package org.example.risk.service;
+package org.example.risk.service;
 
 import org.example.risk.domain.RiskRecord;
 

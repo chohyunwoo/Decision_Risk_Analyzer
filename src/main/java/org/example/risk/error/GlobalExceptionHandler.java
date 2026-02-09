@@ -1,4 +1,4 @@
-﻿package org.example.risk.error;
+package org.example.risk.error;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-﻿package org.example.risk.security;
+package org.example.risk.security;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

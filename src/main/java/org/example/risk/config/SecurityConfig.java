@@ -1,4 +1,4 @@
-﻿package org.example.risk.config;
+package org.example.risk.config;
 
 import org.example.risk.security.JwtAuthFilter;
 import org.example.risk.security.RestAuthenticationEntryPoint;

@@ -1,4 +1,4 @@
-﻿package org.example.risk.dto;
+package org.example.risk.dto;
 
 import java.util.Map;
 

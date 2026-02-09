@@ -1,4 +1,4 @@
-﻿package org.example.risk;
+package org.example.risk;
 
 import java.util.UUID;
 import org.example.risk.domain.Entitlement;
@@ -8,6 +8,7 @@ import org.example.risk.domain.UsageCounter;
 import org.example.risk.dto.RiskAnalyzeRequest;
 import org.example.risk.error.ApiException;
 import org.example.risk.repository.EntitlementRepository;
+import org.example.risk.repository.IdempotencyKeyRepository;
 import org.example.risk.repository.RiskRecordRepository;
 import org.example.risk.repository.UserRepository;
 import org.example.risk.repository.UsageCounterRepository;
@@ -65,11 +66,15 @@ class RiskServiceIntegrationTest {
     @Autowired
     private RiskRecordRepository riskRecordRepository;
 
+    @Autowired
+    private IdempotencyKeyRepository idempotencyKeyRepository;
+
     private UUID userId;
 
     @BeforeEach
     void setUp() {
         riskRecordRepository.deleteAll();
+        idempotencyKeyRepository.deleteAll();
         usageCounterRepository.deleteAll();
         entitlementRepository.deleteAll();
         userRepository.deleteAll();
@@ -91,8 +96,8 @@ class RiskServiceIntegrationTest {
 
     @Test
     void deterministicScoreTest() {
-        entitlementRepository.save(new Entitlement(userRepository.findById(userId).orElseThrow(), EntitlementType.FREE));
-        usageCounterRepository.save(new UsageCounter(userRepository.findById(userId).orElseThrow(), 3));
+        entitlementRepository.save(new Entitlement(userId, EntitlementType.FREE));
+        usageCounterRepository.save(new UsageCounter(userId, 3));
 
         var response1 = riskService.analyze(userId, baseRequest(), "key-1");
         var response2 = riskService.analyze(userId, baseRequest(), "key-2");
@@ -103,8 +108,8 @@ class RiskServiceIntegrationTest {
 
     @Test
     void idempotencyPreventsDoubleDecrement() {
-        entitlementRepository.save(new Entitlement(userRepository.findById(userId).orElseThrow(), EntitlementType.FREE));
-        usageCounterRepository.save(new UsageCounter(userRepository.findById(userId).orElseThrow(), 3));
+        entitlementRepository.save(new Entitlement(userId, EntitlementType.FREE));
+        usageCounterRepository.save(new UsageCounter(userId, 3));
 
         var response1 = riskService.analyze(userId, baseRequest(), "idempotent-key");
         var response2 = riskService.analyze(userId, baseRequest(), "idempotent-key");
@@ -116,8 +121,8 @@ class RiskServiceIntegrationTest {
 
     @Test
     void parallelRequestsDoNotOverDecrement() throws Exception {
-        entitlementRepository.save(new Entitlement(userRepository.findById(userId).orElseThrow(), EntitlementType.FREE));
-        usageCounterRepository.save(new UsageCounter(userRepository.findById(userId).orElseThrow(), 1));
+        entitlementRepository.save(new Entitlement(userId, EntitlementType.FREE));
+        usageCounterRepository.save(new UsageCounter(userId, 1));
 
         ExecutorService executor = Executors.newFixedThreadPool(2);
         CountDownLatch latch = new CountDownLatch(1);
@@ -158,10 +163,10 @@ class RiskServiceIntegrationTest {
 
     @Test
     void premiumBypassesLimit() {
-        Entitlement ent = new Entitlement(userRepository.findById(userId).orElseThrow(), EntitlementType.PAID);
+        Entitlement ent = new Entitlement(userId, EntitlementType.PAID);
         ent.setPlan("pro");
         entitlementRepository.save(ent);
-        usageCounterRepository.save(new UsageCounter(userRepository.findById(userId).orElseThrow(), 0));
+        usageCounterRepository.save(new UsageCounter(userId, 0));
 
         var response = riskService.analyze(userId, baseRequest(), "premium-key");
         assertThat(response.getRiskScore()).isGreaterThan(0);

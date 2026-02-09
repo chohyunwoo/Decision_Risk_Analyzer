@@ -1,5 +1,6 @@
-﻿package org.example.risk.domain;
+package org.example.risk.domain;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,6 +13,8 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(
@@ -36,8 +39,9 @@ public class IdempotencyKey {
     @Column(name = "request_hash", nullable = false)
     private String requestHash;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "response_payload", columnDefinition = "jsonb")
-    private String responsePayload;
+    private JsonNode responsePayload;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -84,11 +88,11 @@ public class IdempotencyKey {
         this.requestHash = requestHash;
     }
 
-    public String getResponsePayload() {
+    public JsonNode getResponsePayload() {
         return responsePayload;
     }
 
-    public void setResponsePayload(String responsePayload) {
+    public void setResponsePayload(JsonNode responsePayload) {
         this.responsePayload = responsePayload;
     }
 

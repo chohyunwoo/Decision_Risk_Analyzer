@@ -1,4 +1,4 @@
-﻿package org.example.risk.dto;
+package org.example.risk.dto;
 
 public class ErrorEnvelope {
     private ErrorResponse error;

@@ -1,10 +1,9 @@
-﻿package org.example.risk.service;
+package org.example.risk.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -97,7 +96,7 @@ public class RiskService {
         }
 
         Entitlement entitlement = entitlementRepository.findByUserIdForUpdate(userId)
-            .orElseGet(() -> entitlementRepository.save(new Entitlement(user, EntitlementType.FREE)));
+            .orElseGet(() -> entitlementRepository.save(new Entitlement(user.getId(), EntitlementType.FREE)));
 
         if (entitlement.getEntitlement() == EntitlementType.BLOCKED) {
             throw new ApiException(ErrorCodes.FORBIDDEN, "User is blocked", HttpStatus.FORBIDDEN);
@@ -180,20 +179,16 @@ public class RiskService {
         }
     }
 
-    private String serializeResponse(RiskAnalyzeResponse response) {
-        try {
-            return objectMapper.writeValueAsString(response);
-        } catch (JsonProcessingException ex) {
-            throw new ApiException(ErrorCodes.INTERNAL_ERROR, "Failed to serialize response", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    private JsonNode serializeResponse(RiskAnalyzeResponse response) {
+        return objectMapper.valueToTree(response);
     }
 
-    private RiskAnalyzeResponse deserializeResponse(String payload) {
+    private RiskAnalyzeResponse deserializeResponse(JsonNode payload) {
         if (payload == null) {
             throw new ApiException(ErrorCodes.INTERNAL_ERROR, "Missing idempotent response", HttpStatus.INTERNAL_SERVER_ERROR);
         }
         try {
-            return objectMapper.readValue(payload.getBytes(StandardCharsets.UTF_8), RiskAnalyzeResponse.class);
+            return objectMapper.treeToValue(payload, RiskAnalyzeResponse.class);
         } catch (Exception ex) {
             throw new ApiException(ErrorCodes.INTERNAL_ERROR, "Failed to deserialize response", HttpStatus.INTERNAL_SERVER_ERROR);
         }

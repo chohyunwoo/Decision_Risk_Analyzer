@@ -1,4 +1,4 @@
-﻿package org.example.risk.repository;
+package org.example.risk.repository;
 
 import java.util.Optional;
 import java.util.UUID;

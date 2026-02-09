@@ -1,4 +1,4 @@
-﻿package org.example.risk.repository;
+package org.example.risk.repository;
 
 import java.util.UUID;
 import org.example.risk.domain.RiskRecord;

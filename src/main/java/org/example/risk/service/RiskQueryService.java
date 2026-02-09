@@ -1,4 +1,4 @@
-﻿package org.example.risk.service;
+package org.example.risk.service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.UUID;

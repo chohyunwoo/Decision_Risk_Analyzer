@@ -1,4 +1,4 @@
-﻿package org.example.risk.security;
+package org.example.risk.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

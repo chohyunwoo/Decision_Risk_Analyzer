@@ -1,4 +1,4 @@
-﻿package org.example.risk.controller;
+package org.example.risk.controller;
 
 import jakarta.validation.Valid;
 import java.util.UUID;

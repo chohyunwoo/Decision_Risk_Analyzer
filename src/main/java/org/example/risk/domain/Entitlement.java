@@ -1,13 +1,11 @@
-﻿package org.example.risk.domain;
+package org.example.risk.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
@@ -18,11 +16,6 @@ public class Entitlement {
     @Id
     @Column(name = "user_id", nullable = false)
     private UUID userId;
-
-    @MapsId
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "entitlement", nullable = false)
@@ -42,9 +35,8 @@ public class Entitlement {
 
     public Entitlement() {}
 
-    public Entitlement(User user, EntitlementType entitlement) {
-        this.user = user;
-        this.userId = user.getId();
+    public Entitlement(UUID userId, EntitlementType entitlement) {
+        this.userId = userId;
         this.entitlement = entitlement;
     }
 
@@ -54,15 +46,6 @@ public class Entitlement {
 
     public void setUserId(UUID userId) {
         this.userId = userId;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-        this.userId = user != null ? user.getId() : null;
     }
 
     public EntitlementType getEntitlement() {
@@ -103,5 +86,12 @@ public class Entitlement {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @PrePersist
+    void ensureId() {
+        if (this.userId == null) {
+            throw new IllegalStateException("Entitlement.userId must be set");
+        }
     }
 }

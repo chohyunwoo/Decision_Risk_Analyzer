@@ -1,4 +1,4 @@
-﻿package org.example.risk.domain;
+package org.example.risk.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,4 +1,4 @@
-﻿package org.example.risk.controller;
+package org.example.risk.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.UUID;

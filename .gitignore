@@ -46,3 +46,7 @@ bin/
 ### Frontend ###
 frontend/.next/
 frontend/node_modules/
+
+### Cloudflare / Node ###
+.wrangler/
+node_modules/

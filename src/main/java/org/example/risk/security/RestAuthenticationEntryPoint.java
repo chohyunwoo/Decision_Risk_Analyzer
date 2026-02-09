@@ -1,4 +1,4 @@
-﻿package org.example.risk.security;
+package org.example.risk.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

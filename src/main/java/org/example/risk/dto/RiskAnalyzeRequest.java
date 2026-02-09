@@ -1,4 +1,4 @@
-﻿package org.example.risk.dto;
+package org.example.risk.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;

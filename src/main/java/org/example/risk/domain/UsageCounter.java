@@ -1,11 +1,9 @@
-﻿package org.example.risk.domain;
+package org.example.risk.domain;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import java.time.Instant;
 import java.util.UUID;
@@ -17,11 +15,6 @@ public class UsageCounter {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
-    @MapsId
-    @OneToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(name = "remaining_free", nullable = false)
     private int remainingFree;
 
@@ -30,9 +23,8 @@ public class UsageCounter {
 
     public UsageCounter() {}
 
-    public UsageCounter(User user, int remainingFree) {
-        this.user = user;
-        this.userId = user.getId();
+    public UsageCounter(UUID userId, int remainingFree) {
+        this.userId = userId;
         this.remainingFree = remainingFree;
     }
 
@@ -42,15 +34,6 @@ public class UsageCounter {
 
     public void setUserId(UUID userId) {
         this.userId = userId;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-        this.userId = user != null ? user.getId() : null;
     }
 
     public int getRemainingFree() {
@@ -67,5 +50,12 @@ public class UsageCounter {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @PrePersist
+    void ensureId() {
+        if (this.userId == null) {
+            throw new IllegalStateException("UsageCounter.userId must be set");
+        }
     }
 }
