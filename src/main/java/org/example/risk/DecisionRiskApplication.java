@@ -1,11 +1,11 @@
-package org.example;
+﻿package org.example.risk;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class Main {
+public class DecisionRiskApplication {
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        SpringApplication.run(DecisionRiskApplication.class, args);
     }
 }

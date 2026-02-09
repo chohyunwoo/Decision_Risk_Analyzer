@@ -1,4 +1,4 @@
-# Decision Risk Analyzer (MVP v1)
+﻿# Decision Risk Analyzer (MVP v1)
 
 ## Why This Project Exists
 음식 선택은 사소해 보이지만,
@@ -69,3 +69,66 @@
 - **AI 설명 생성**: 리스크 결과를 자연어로 요약하고 개선 포인트를 제안.
 - **장기 통계/리포트**: 월/분기 단위 리포트와 패턴 분석 제공.
 - **협업/공유**: 가족/팀 단위 기록 공유 및 요약 제공.
+
+---
+
+## Backend Run (Spring Boot + PostgreSQL)
+
+### 1) PostgreSQL 준비
+로컬에 PostgreSQL이 없다면 Docker로 실행하세요.
+
+```bash
+docker run --name dra-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dra -p 5432:5432 -d postgres:15-alpine
+```
+
+### 2) 환경 변수
+```bash
+export DB_URL=jdbc:postgresql://localhost:5432/dra
+export DB_USER=postgres
+export DB_PASSWORD=postgres
+export JWT_SECRET=dev-secret-please-change-32-bytes-minimum
+```
+
+### 3) 실행
+```bash
+./gradlew bootRun
+```
+
+---
+
+## JWT 토큰
+- `Authorization: Bearer <token>`
+- HS256, subject = user UUID
+- JWT_SECRET와 일치해야 함
+
+---
+
+## Curl Examples
+
+### POST /api/risk/analyze
+```bash
+curl -X POST http://localhost:8080/api/risk/analyze \
+  -H "Authorization: Bearer <JWT>" \
+  -H "Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "region": "KR",
+    "priceTotal": 28000,
+    "people": 2,
+    "timeMinutes": 35,
+    "menu": "김치찌개",
+    "link": "https://example.com/store/123"
+  }'
+```
+
+### GET /api/risk/records
+```bash
+curl -X GET "http://localhost:8080/api/risk/records?page=1&size=20" \
+  -H "Authorization: Bearer <JWT>"
+```
+
+### GET /api/users/me
+```bash
+curl -X GET http://localhost:8080/api/users/me \
+  -H "Authorization: Bearer <JWT>"
+```

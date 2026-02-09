@@ -1,0 +1,20 @@
+﻿spring:
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/dra}
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev-secret-please-change-32-bytes-minimum}

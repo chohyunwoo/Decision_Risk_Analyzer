@@ -7,6 +7,7 @@ const RECORDS_KEY = "dra_records_v1";
 const MAX_TRIALS = 3;
 
 type RiskLabel = "낮은 리스크" | "보통 리스크" | "높은 리스크";
+type Region = "KR" | "US";
 
 type DecisionRecord = {
   id: string;
@@ -14,10 +15,35 @@ type DecisionRecord = {
   createdAt: number;
   menu: string;
   price: number;
+  people: number;
   timeMinutes: number;
+  region: Region;
   riskScore: number;
   riskLabel: RiskLabel;
 };
+
+const REGION_PROFILES: Record<
+  Region,
+  { label: string; baseOrderAmount: number; currency: string; pricePlaceholder: string }
+> = {
+  KR: {
+    label: "서울(한국)",
+    baseOrderAmount: 26216,
+    currency: "원",
+    pricePlaceholder: "예: 28000",
+  },
+  US: {
+    label: "미국",
+    baseOrderAmount: 31.09,
+    currency: "USD",
+    pricePlaceholder: "예: 30",
+  },
+};
+
+const WASTE_WEIGHT = 0.7;
+const UNCERTAINTY_WEIGHT = 0.3;
+const PRICE_WEIGHT_IN_WASTE = 0.6;
+const TIME_WEIGHT_IN_WASTE = 0.4;
 
 function formatLocalDate(date: Date) {
   const year = date.getFullYear();
@@ -30,6 +56,13 @@ function toMonthKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   return `${year}-${month}`;
+}
+
+function formatCurrency(amount: number, region: Region) {
+  if (region === "US") {
+    return `$${amount.toLocaleString("en-US")}`;
+  }
+  return `${amount.toLocaleString()}원`;
 }
 
 function buildMonthGrid(date: Date) {
@@ -54,22 +87,60 @@ function buildMonthGrid(date: Date) {
   return { year, month, cells };
 }
 
-function computeRiskScore(menu: string, priceValue: number, timeValue: number) {
-  let score = 0;
+function getPriceBandScore(perPersonPrice: number, baseOrderAmount: number) {
+  const lowThreshold = baseOrderAmount * 0.8;
+  const highThreshold = baseOrderAmount * 1.2;
 
-  if (menu.trim().length > 0) {
-    score += 20;
-  }
+  if (perPersonPrice < lowThreshold) return 20;
+  if (perPersonPrice < highThreshold) return 50;
+  return 80;
+}
 
-  if (priceValue < 10000) score += 10;
-  else if (priceValue < 30000) score += 30;
-  else score += 50;
+function getTimeBandScore(timeMinutes: number) {
+  if (timeMinutes < 20) return 20;
+  if (timeMinutes < 60) return 50;
+  return 80;
+}
 
-  if (timeValue < 20) score += 10;
-  else if (timeValue < 60) score += 20;
-  else score += 30;
+function computeWasteRisk(
+  totalPrice: number,
+  timeMinutes: number,
+  people: number,
+  baseOrderAmount: number,
+) {
+  const safePeople = Math.max(1, people);
+  const perPersonPrice = totalPrice / safePeople;
+  const priceScore = getPriceBandScore(perPersonPrice, baseOrderAmount);
+  const timeScore = getTimeBandScore(timeMinutes);
 
-  return Math.min(score, 100);
+  return Math.round(
+    priceScore * PRICE_WEIGHT_IN_WASTE + timeScore * TIME_WEIGHT_IN_WASTE,
+  );
+}
+
+function computeUncertaintyRisk(menu: string) {
+  return menu.trim().length === 0 ? 50 : 0;
+}
+
+function computeRiskScore(
+  menu: string,
+  priceValue: number,
+  timeValue: number,
+  people: number,
+  baseOrderAmount: number,
+) {
+  const wasteRisk = computeWasteRisk(
+    priceValue,
+    timeValue,
+    people,
+    baseOrderAmount,
+  );
+  const uncertaintyRisk = computeUncertaintyRisk(menu);
+  const total = Math.round(
+    wasteRisk * WASTE_WEIGHT + uncertaintyRisk * UNCERTAINTY_WEIGHT,
+  );
+
+  return Math.min(Math.max(total, 0), 100);
 }
 
 function riskLabel(score: number): RiskLabel {
@@ -82,6 +153,8 @@ export default function Home() {
   const [menu, setMenu] = useState("");
   const [price, setPrice] = useState("");
   const [time, setTime] = useState("");
+  const [people, setPeople] = useState("1");
+  const [region, setRegion] = useState<Region>("KR");
   const [score, setScore] = useState<number | null>(null);
   const [label, setLabel] = useState<RiskLabel | null>(null);
   const [message, setMessage] = useState("");
@@ -99,21 +172,39 @@ export default function Home() {
   useEffect(() => {
     const stored = localStorage.getItem(RECORDS_KEY);
     const parsed = stored ? (JSON.parse(stored) as DecisionRecord[]) : [];
-    setRecords(Array.isArray(parsed) ? parsed : []);
+    const normalized = Array.isArray(parsed)
+      ? parsed.map((record) => ({
+          ...record,
+          people: record.people ?? 1,
+          region: (record.region ?? "KR") as Region,
+        }))
+      : [];
+    setRecords(normalized);
   }, []);
+
+  useEffect(() => {
+    setSelectedDate(null);
+  }, [region]);
 
   const remainingTrials = useMemo(
     () => Math.max(0, MAX_TRIALS - trialCount),
     [trialCount],
   );
 
+  const filteredRecords = useMemo(() => {
+    return records.filter((record) => (record.region ?? "KR") === region);
+  }, [records, region]);
+
   const groupedRecords = useMemo(() => {
-    return records.reduce<Record<string, DecisionRecord[]>>((acc, record) => {
-      if (!acc[record.date]) acc[record.date] = [];
-      acc[record.date].push(record);
-      return acc;
-    }, {});
-  }, [records]);
+    return filteredRecords.reduce<Record<string, DecisionRecord[]>>(
+      (acc, record) => {
+        if (!acc[record.date]) acc[record.date] = [];
+        acc[record.date].push(record);
+        return acc;
+      },
+      {},
+    );
+  }, [filteredRecords]);
 
   const monthKey = useMemo(() => toMonthKey(currentMonth), [currentMonth]);
 
@@ -149,7 +240,7 @@ export default function Home() {
     const weekAgo = new Date(now);
     weekAgo.setDate(now.getDate() - 6);
 
-    const recent = records.filter((record) => {
+    const recent = filteredRecords.filter((record) => {
       const recordDate = new Date(record.createdAt);
       return recordDate >= weekAgo && recordDate <= now;
     });
@@ -168,7 +259,7 @@ export default function Home() {
       maxRisk,
       count: recent.length,
     };
-  }, [records]);
+  }, [filteredRecords]);
 
   const timelineData = useMemo(() => {
     const now = new Date();
@@ -208,22 +299,28 @@ export default function Home() {
 
   const recentMenus = useMemo(() => {
     const unique: string[] = [];
-    for (const record of records) {
+    for (const record of filteredRecords) {
+      if (!record.menu.trim()) continue;
       if (!unique.includes(record.menu)) {
         unique.push(record.menu);
       }
       if (unique.length >= 3) break;
     }
     return unique;
-  }, [records]);
+  }, [filteredRecords]);
 
-  const lastRecord = useMemo(() => records[0] ?? null, [records]);
+  const lastRecord = useMemo(
+    () => filteredRecords[0] ?? null,
+    [filteredRecords],
+  );
+
+  const regionProfile = REGION_PROFILES[region];
 
   const handleAnalyze = () => {
     setMessage("");
 
-    if (!menu.trim() || !price.trim() || !time.trim()) {
-      setMessage("모든 항목을 입력해 주세요.");
+    if (!price.trim() || !time.trim() || !people.trim()) {
+      setMessage("가격, 시간, 인원 수를 입력해 주세요.");
       return;
     }
 
@@ -238,13 +335,25 @@ export default function Home() {
 
     const priceValue = Number.parseInt(price, 10);
     const timeValue = Number.parseInt(time, 10);
+    const peopleValue = Number.parseInt(people, 10);
 
-    if (Number.isNaN(priceValue) || Number.isNaN(timeValue)) {
-      setMessage("가격과 시간은 숫자로 입력해 주세요.");
+    if (
+      Number.isNaN(priceValue) ||
+      Number.isNaN(timeValue) ||
+      Number.isNaN(peopleValue) ||
+      peopleValue <= 0
+    ) {
+      setMessage("가격, 시간, 인원 수는 올바른 숫자로 입력해 주세요.");
       return;
     }
 
-    const computedScore = computeRiskScore(menu, priceValue, timeValue);
+    const computedScore = computeRiskScore(
+      menu,
+      priceValue,
+      timeValue,
+      peopleValue,
+      regionProfile.baseOrderAmount,
+    );
     const computedLabel = riskLabel(computedScore);
 
     const now = new Date();
@@ -254,7 +363,9 @@ export default function Home() {
       createdAt: now.getTime(),
       menu: menu.trim(),
       price: priceValue,
+      people: peopleValue,
       timeMinutes: timeValue,
+      region,
       riskScore: computedScore,
       riskLabel: computedLabel,
     };
@@ -290,7 +401,24 @@ export default function Home() {
           >
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                메뉴
+                지역
+              </label>
+              <select
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                value={region}
+                onChange={(event) => setRegion(event.target.value as Region)}
+              >
+                {Object.entries(REGION_PROFILES).map(([value, profile]) => (
+                  <option key={value} value={value}>
+                    {profile.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-slate-700">
+                메뉴 (선택)
               </label>
               <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
@@ -302,13 +430,13 @@ export default function Home() {
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                가격 (원)
+                가격 ({regionProfile.currency})
               </label>
               <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
-                placeholder="예: 12000"
+                placeholder={regionProfile.pricePlaceholder}
                 inputMode="numeric"
               />
             </div>
@@ -322,6 +450,19 @@ export default function Home() {
                 value={time}
                 onChange={(event) => setTime(event.target.value)}
                 placeholder="예: 30"
+                inputMode="numeric"
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <label className="text-sm font-medium text-slate-700">
+                인원 수
+              </label>
+              <input
+                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                value={people}
+                onChange={(event) => setPeople(event.target.value)}
+                placeholder="예: 1"
                 inputMode="numeric"
               />
             </div>
@@ -355,7 +496,7 @@ export default function Home() {
             </div>
           )}
 
-          {lastRecord && (
+          {lastRecord && lastRecord.menu.trim().length > 0 && (
             <button
               type="button"
               className="mt-3 text-xs font-medium text-slate-600 underline-offset-4 hover:underline"
@@ -363,6 +504,8 @@ export default function Home() {
                 setMenu(lastRecord.menu);
                 setPrice(String(lastRecord.price));
                 setTime(String(lastRecord.timeMinutes));
+                setPeople(String(lastRecord.people));
+                setRegion(lastRecord.region ?? "KR");
               }}
             >
               마지막 입력 복사
@@ -385,7 +528,7 @@ export default function Home() {
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
               <p className="text-xs text-slate-500">총 지출</p>
               <p className="text-lg font-semibold">
-                {weeklySummary.totalSpend.toLocaleString()}원
+                {formatCurrency(weeklySummary.totalSpend, region)}
               </p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
@@ -410,7 +553,8 @@ export default function Home() {
             {score === null ? "결과가 여기에 표시됩니다." : label}
           </p>
           <p>
-            가격과 시간 입력값 구간, 메뉴 입력 유무를 고정 가중치로 계산합니다.
+            낭비(가격·시간) 70% + 불확실성(메뉴) 30% 고정 가중치로
+            계산합니다.
           </p>
         </section>
 
@@ -538,7 +682,7 @@ export default function Home() {
                   {stats ? (
                     <div className="text-[10px]">
                       <p>
-                        {stats.totalSpend.toLocaleString()}원
+                        {formatCurrency(stats.totalSpend, region)}
                       </p>
                       <p>리스크 {stats.avgRisk}</p>
                     </div>
@@ -555,7 +699,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-semibold">기록</h2>
             <span className="text-xs text-slate-500">
-              {records.length}건
+              {filteredRecords.length}건
             </span>
           </div>
 
@@ -595,11 +739,15 @@ export default function Home() {
                       >
                         <div className="flex flex-col">
                           <span className="font-medium text-slate-800">
-                            {record.menu}
+                            {record.menu.trim().length > 0
+                              ? record.menu
+                              : "메뉴 미입력"}
                           </span>
                           <span className="text-xs text-slate-500">
-                            {record.price.toLocaleString()}원 ·{" "}
-                            {record.timeMinutes}분
+                            {record.region === "US"
+                              ? `$${record.price.toLocaleString("en-US")}`
+                              : `${record.price.toLocaleString()}원`}{" "}
+                            · {record.timeMinutes}분 · {record.people}명
                           </span>
                         </div>
                         <div className="text-right">
