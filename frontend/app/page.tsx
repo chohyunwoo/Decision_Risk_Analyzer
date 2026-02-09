@@ -2,25 +2,23 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-type PriceLevel = "low" | "mid" | "high" | "";
-type TimeOfDay = "off-peak" | "peak" | "";
-
 const TRIAL_KEY = "dra_trial_count_v1";
 const MAX_TRIALS = 3;
 
-function computeRiskScore(url: string, price: PriceLevel, time: TimeOfDay) {
+function computeRiskScore(menu: string, priceValue: number, timeValue: number) {
   let score = 0;
 
-  if (url.trim().length > 0) {
+  if (menu.trim().length > 0) {
     score += 20;
   }
 
-  if (price === "low") score += 10;
-  if (price === "mid") score += 30;
-  if (price === "high") score += 50;
+  if (priceValue < 10000) score += 10;
+  else if (priceValue < 30000) score += 30;
+  else score += 50;
 
-  if (time === "off-peak") score += 10;
-  if (time === "peak") score += 30;
+  if (timeValue < 20) score += 10;
+  else if (timeValue < 60) score += 20;
+  else score += 30;
 
   return Math.min(score, 100);
 }
@@ -32,9 +30,9 @@ function riskLabel(score: number) {
 }
 
 export default function Home() {
-  const [url, setUrl] = useState("");
-  const [price, setPrice] = useState<PriceLevel>("");
-  const [time, setTime] = useState<TimeOfDay>("");
+  const [menu, setMenu] = useState("");
+  const [price, setPrice] = useState("");
+  const [time, setTime] = useState("");
   const [score, setScore] = useState<number | null>(null);
   const [message, setMessage] = useState("");
   const [trialCount, setTrialCount] = useState(0);
@@ -53,7 +51,7 @@ export default function Home() {
   const handleAnalyze = () => {
     setMessage("");
 
-    if (!url.trim() || !price || !time) {
+    if (!menu.trim() || !price.trim() || !time.trim()) {
       setMessage("모든 항목을 입력해 주세요.");
       return;
     }
@@ -67,7 +65,15 @@ export default function Home() {
     localStorage.setItem(TRIAL_KEY, String(nextCount));
     setTrialCount(nextCount);
 
-    setScore(computeRiskScore(url, price, time));
+    const priceValue = Number.parseInt(price, 10);
+    const timeValue = Number.parseInt(time, 10);
+
+    if (Number.isNaN(priceValue) || Number.isNaN(timeValue)) {
+      setMessage("가격과 시간은 숫자로 입력해 주세요.");
+      return;
+    }
+
+    setScore(computeRiskScore(menu, priceValue, timeValue));
   };
 
   return (
@@ -93,45 +99,40 @@ export default function Home() {
           >
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                URL
+                메뉴
               </label>
               <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
-                placeholder="예: https://example.com"
-                value={url}
-                onChange={(event) => setUrl(event.target.value)}
+                placeholder="예: 김치찌개, 삼겹살, 파스타"
+                value={menu}
+                onChange={(event) => setMenu(event.target.value)}
               />
             </div>
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                가격 수준
+                가격 (원)
               </label>
-              <select
+              <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
                 value={price}
-                onChange={(event) => setPrice(event.target.value as PriceLevel)}
-              >
-                <option value="">선택</option>
-                <option value="low">낮음</option>
-                <option value="mid">중간</option>
-                <option value="high">높음</option>
-              </select>
+                onChange={(event) => setPrice(event.target.value)}
+                placeholder="예: 12000"
+                inputMode="numeric"
+              />
             </div>
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                시간대
+                예상 시간 (분)
               </label>
-              <select
+              <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
                 value={time}
-                onChange={(event) => setTime(event.target.value as TimeOfDay)}
-              >
-                <option value="">선택</option>
-                <option value="off-peak">비수기</option>
-                <option value="peak">피크</option>
-              </select>
+                onChange={(event) => setTime(event.target.value)}
+                placeholder="예: 30"
+                inputMode="numeric"
+              />
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -165,7 +166,7 @@ export default function Home() {
             {score === null ? "결과가 여기에 표시됩니다." : riskLabel(score)}
           </p>
           <p>
-            가격과 시간대 가중치, 입력 URL 유무를 고정 가중치로 계산합니다.
+            가격과 시간 입력값 구간, 메뉴 입력 유무를 고정 가중치로 계산합니다.
           </p>
         </section>
       </div>
