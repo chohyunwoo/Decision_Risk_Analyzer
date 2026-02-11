@@ -5,6 +5,9 @@ create table if not exists public.profiles (
   name text,
   nickname text,
   role text not null default 'user' check (role in ('user', 'admin')),
+  plan text not null default 'free',
+  polar_customer_id text,
+  polar_order_id text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

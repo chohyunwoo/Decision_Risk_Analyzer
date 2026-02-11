@@ -73,7 +73,8 @@
                      "noMenu":  "メニュー未入力",
                      "risk":  "リスク",
                      "recordMeta":  "{price} | {time}分 | {people}人",
-                     "noRecord":  "記録なし"
+                     "noRecord":  "記録なし",
+                     "upgrade":  "プランをアップグレード"
                  },
     "Auth":  {
                  "loginTitle":  "ログイン",

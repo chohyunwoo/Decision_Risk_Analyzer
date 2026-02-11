@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useLocale, useTranslations } from "next-intl";
 
 const RECORDS_KEY = "dra_records_v1";
+const POLAR_PRODUCT_ID = "de006367-bcb5-4fdf-9f94-529d9c8cfc69";
 
 type RiskLabelKey = "low" | "medium" | "high";
 
@@ -181,6 +182,7 @@ export default function Home() {
   const [time, setTime] = useState("");
   const [people, setPeople] = useState("1");
   const [authEmail, setAuthEmail] = useState<string | null>(null);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [region, setRegion] = useState<Region>("KR");
   const [score, setScore] = useState<number | null>(null);
@@ -195,9 +197,11 @@ export default function Home() {
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       setAuthEmail(data.session?.user?.email ?? null);
+      setAuthUserId(data.session?.user?.id ?? null);
     });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthEmail(session?.user?.email ?? null);
+      setAuthUserId(session?.user?.id ?? null);
     });
     return () => {
       active = false;
@@ -353,6 +357,20 @@ export default function Home() {
   );
 
   const regionConfig = REGION_CONFIG[region];
+
+  const checkoutUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    params.set("products", POLAR_PRODUCT_ID);
+    if (authEmail) params.set("customerEmail", authEmail);
+    if (authUserId) params.set("customerExternalId", authUserId);
+    if (authEmail || authUserId) {
+      params.set(
+        "metadata",
+        JSON.stringify({ userId: authUserId, email: authEmail })
+      );
+    }
+    return `/api/polar/checkout?${params.toString()}`;
+  }, [authEmail, authUserId]);
 
   const getRiskLabel = (key: RiskLabelKey) => {
     if (key === "low") return t("riskLabelLow");
@@ -637,6 +655,12 @@ export default function Home() {
               >
                 {t("analyze")}
               </button>
+              <a
+                href={checkoutUrl}
+                className="rounded-xl border border-[#1152d4]/20 px-4 py-3 text-center text-sm font-semibold text-[#1152d4] transition-all active:scale-[0.98]"
+              >
+                {t("upgrade")}
+              </a>
             </div>
           </form>
 

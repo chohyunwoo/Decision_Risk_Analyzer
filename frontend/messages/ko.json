@@ -73,7 +73,8 @@
                      "noMenu":  "메뉴 미입력",
                      "risk":  "리스크",
                      "recordMeta":  "{price} | {time}분 | {people}명",
-                     "noRecord":  "기록 없음"
+                     "noRecord":  "기록 없음",
+                     "upgrade":  "플랜 업그레이드"
                  },
     "Auth":  {
                  "loginTitle":  "로그인",
