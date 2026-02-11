@@ -446,23 +446,64 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50 px-6 py-12 text-slate-900">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
-        <header className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            {tCommon("appName")}
-          </p>
-
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
-            <span>
+    <div className="min-h-screen bg-[#f6f6f8] text-[#1e293b]">
+      <nav className="sticky top-0 z-50 border-b border-[#1152d4]/10 bg-white/80 backdrop-blur-md">
+        <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
+          <div className="flex flex-col">
+            <span className="text-lg font-extrabold leading-none text-[#1152d4]">
+              DRA
+            </span>
+            <span className="text-[10px] font-medium uppercase tracking-wider text-[#1e293b]/60">
+              Risk Analyzer
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex rounded-lg bg-[#1152d4]/5 p-1 text-[10px] font-semibold">
+              {[
+                { code: "ko", label: "KR", href: "/" },
+                { code: "en", label: "EN", href: "/en" },
+                { code: "ja", label: "JA", href: "/ja" }
+              ].map((lang) => {
+                const active = locale === lang.code;
+                return (
+                  <a
+                    key={lang.code}
+                    href={lang.href}
+                    className={`rounded-md px-2 py-0.5 ${
+                      active
+                        ? "bg-white text-[#1152d4] shadow-sm"
+                        : "text-[#1e293b]/50"
+                    }`}
+                  >
+                    {lang.label}
+                  </a>
+                );
+              })}
+            </div>
+            <span className="text-[10px] font-semibold text-[#1e293b]/60">
               {authEmail
                 ? tCommon("loggedInAs", { email: authEmail })
                 : tCommon("loggedOut")}
             </span>
-            {authEmail && (
+            {!authEmail ? (
+              <>
+                <a
+                  href="./login"
+                  className="min-w-[72px] rounded-lg border border-[#1152d4]/20 px-3 py-1.5 text-center text-sm font-semibold text-[#1152d4]"
+                >
+                  {tCommon("login")}
+                </a>
+                <a
+                  href="./signup"
+                  className="min-w-[84px] rounded-lg bg-[#1152d4] px-3 py-1.5 text-center text-sm font-semibold text-white"
+                >
+                  {tCommon("signup")}
+                </a>
+              </>
+            ) : (
               <button
                 type="button"
-                className="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed"
+                className="min-w-[84px] rounded-lg border border-[#1152d4]/20 px-3 py-1.5 text-sm font-semibold text-[#1152d4] whitespace-nowrap"
                 onClick={handleSignOut}
                 disabled={authLoading}
               >
@@ -470,29 +511,28 @@ export default function Home() {
               </button>
             )}
           </div>
+        </div>
+      </nav>
+
+      <main className="mx-auto flex w-full max-w-md flex-col gap-8 px-5 pb-24 pt-8">
+        <header className="mb-10 space-y-3">
+          <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#1152d4]/70">
+            {tCommon("appName")}
+          </p>
+
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-3">
-              <h1 className="text-3xl font-semibold">{t("headline")}</h1>
-              <p className="text-slate-600">{t("subhead")}</p>
+              <h1 className="text-3xl font-extrabold leading-[1.2] text-[#0f172a]">
+                {t("headline")}
+              </h1>
+              <p className="text-sm leading-relaxed text-[#1e293b]/70">
+                {t("subhead")}
+              </p>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {!authEmail && (<><a
-                href="./login"
-                className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-400"
-              >
-                {tCommon("login")}
-              </a>
-              <a
-                href="./signup"
-                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-slate-800"
-              >
-                {tCommon("signup")}
-              </a>
-            </>)}</div>
           </div>
         </header>
 
-        <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="rounded-xl border border-[#1152d4]/5 bg-white p-6 shadow-xl shadow-[#1152d4]/5">
           <form
             className="grid gap-4"
             onSubmit={(event) => {
@@ -501,28 +541,36 @@ export default function Home() {
             }}
           >
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
                 {t("regionLabel")}
               </label>
-              <select
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
-                value={region}
-                onChange={(event) => setRegion(event.target.value as Region)}
-              >
-                {Object.entries(REGION_CONFIG).map(([value, config]) => (
-                  <option key={value} value={value}>
-                    {t(config.labelKey)}
-                  </option>
-                ))}
-              </select>
+              <div className="grid grid-cols-2 gap-2 rounded-lg bg-[#f6f6f8] p-1">
+                {Object.entries(REGION_CONFIG).map(([value, config]) => {
+                  const selected = region === value;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      className={`rounded-md py-2.5 text-sm font-semibold transition ${
+                        selected
+                          ? "bg-white text-[#1152d4] shadow-sm"
+                          : "text-[#1e293b]/50"
+                      }`}
+                      onClick={() => setRegion(value as Region)}
+                    >
+                      {t(config.labelKey)}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
                 {t("menuLabel")}
               </label>
               <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
                 placeholder={t("menuPlaceholder")}
                 value={menu}
                 onChange={(event) => setMenu(event.target.value)}
@@ -530,11 +578,11 @@ export default function Home() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
                 {t("priceLabel", { currency: regionConfig.currency })}
               </label>
               <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
                 placeholder={t(regionConfig.pricePlaceholderKey)}
@@ -543,11 +591,11 @@ export default function Home() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
                 {t("timeLabel")}
               </label>
               <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+                className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
                 value={time}
                 onChange={(event) => setTime(event.target.value)}
                 placeholder={t("timePlaceholder")}
@@ -556,13 +604,13 @@ export default function Home() {
             </div>
 
             <div className="grid gap-2">
-              <label className="text-sm font-medium text-slate-700">
+              <label className="text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
                 {t("peopleLabel")}
               </label>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-lg border border-slate-200 text-lg font-semibold text-slate-700 hover:border-slate-400"
+                  className="h-10 w-10 rounded-lg bg-white text-lg font-semibold text-[#1152d4] shadow-sm"
                   onClick={() =>
                     setPeople((prev) => {
                       const value = Number.parseInt(prev, 10);
@@ -575,7 +623,7 @@ export default function Home() {
                   -
                 </button>
                 <input
-                  className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-center text-sm outline-none transition focus:border-slate-400"
+                  className="w-20 rounded-lg bg-[#f6f6f8] px-3 py-2 text-center text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
                   value={people}
                   onChange={(event) => {
                     const next = event.target.value.replace(/\D/g, "");
@@ -589,7 +637,7 @@ export default function Home() {
                 />
                 <button
                   type="button"
-                  className="h-10 w-10 rounded-lg border border-slate-200 text-lg font-semibold text-slate-700 hover:border-slate-400"
+                  className="h-10 w-10 rounded-lg bg-[#1152d4] text-lg font-semibold text-white shadow-md"
                   onClick={() =>
                     setPeople((prev) => {
                       const value = Number.parseInt(prev, 10);
@@ -602,17 +650,17 @@ export default function Home() {
                   +
                 </button>
               </div>
-              <p className="text-xs text-slate-500">{t("peopleDefaultHint")}</p>
+              <p className="text-xs text-[#1e293b]/60">{t("peopleDefaultHint")}</p>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="submit"
-                className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
+                className="rounded-xl bg-[#1152d4] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1152d4]/20 transition-all active:scale-[0.98]"
               >
                 {t("analyze")}
               </button>
-              <span className="text-xs text-slate-500">
+              <span className="text-xs text-[#1152d4]/60">
                 {t("trialsRemaining", { count: remainingTrials })}
               </span>
             </div>
@@ -655,6 +703,31 @@ export default function Home() {
               {message}
             </p>
           )}
+        </section>
+
+        <section className="grid grid-cols-2 gap-4">
+          <div className="rounded-xl border border-[#1152d4]/5 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#1152d4]/10 text-[#1152d4]">
+              <span className="text-sm font-bold">⏱</span>
+            </div>
+            <h3 className="mb-1 text-xs font-bold text-[#0f172a]">
+              Recent Calcs
+            </h3>
+            <p className="text-[10px] text-[#1e293b]/60">
+              View your last 10 risk scores and insights.
+            </p>
+          </div>
+          <div className="rounded-xl border border-[#1152d4]/5 bg-white p-4 shadow-sm">
+            <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
+              <span className="text-sm font-bold">✓</span>
+            </div>
+            <h3 className="mb-1 text-xs font-bold text-[#0f172a]">
+              How it Works
+            </h3>
+            <p className="text-[10px] text-[#1e293b]/60">
+              Learn about our data-driven methodology.
+            </p>
+          </div>
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
@@ -900,7 +973,32 @@ export default function Home() {
             </div>
           )}
         </section>
+
+        <div className="h-24" />
+      </main>
+
+      <div className="fixed bottom-0 left-0 right-0 border-t border-[#1152d4]/10 bg-white/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-md items-center justify-between px-6 pb-6 pt-3 text-[10px] font-bold uppercase tracking-tight text-[#1e293b]/40">
+          {[
+            { label: tCommon("home"), href: "./" },
+            { label: tCommon("explore"), href: "#" },
+            { label: tCommon("trends"), href: "#" },
+            { label: tCommon("profile"), href: "./profile" }
+          ].map((item, index) => {
+            const isHome = index === 0;
+            return (
+              <a
+                key={item.label}
+                href={item.href}
+                className={isHome ? "text-[#1152d4]" : undefined}
+              >
+                {item.label}
+              </a>
+            );
+          })}
+        </div>
+        <div className="mx-auto mb-4 h-1.5 w-32 rounded-full bg-[#1e293b]/10" />
       </div>
-    </main>
+  </div>
   );
 }

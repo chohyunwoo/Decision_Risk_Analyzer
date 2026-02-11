@@ -76,23 +76,23 @@ export default function SignupPage() {
   };
 
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <section className="rounded-xl border border-[#1152d4]/5 bg-white p-6 shadow-xl shadow-[#1152d4]/5">
       <header className="space-y-2">
-        <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+        <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-[#1152d4]/70">
           {tCommon("appName")}
         </p>
-        <h1 className="text-2xl font-semibold text-slate-900">
+        <h1 className="text-2xl font-extrabold text-[#0f172a]">
           {t("signupTitle")}
         </h1>
-        <p className="text-sm text-slate-600">{t("signupSubtitle")}</p>
+        <p className="text-sm text-[#1e293b]/70">{t("signupSubtitle")}</p>
       </header>
 
       <form className="mt-6 grid gap-4" onSubmit={handleSignup}>
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
+        <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
           {t("email")}
           <input
             type="email"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             placeholder="you@example.com"
@@ -100,11 +100,11 @@ export default function SignupPage() {
           />
         </label>
 
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
+        <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
           {t("password")}
           <input
             type="password"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             placeholder="????????"
@@ -112,11 +112,11 @@ export default function SignupPage() {
           />
         </label>
 
-        <label className="grid gap-2 text-sm font-medium text-slate-700">
+        <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
           {t("passwordConfirm")}
           <input
             type="password"
-            className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
+            className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             placeholder="????????"
@@ -126,7 +126,7 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
+          className="rounded-xl bg-[#1152d4] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1152d4]/20 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#1152d4]/60"
           disabled={state.loading}
         >
           {state.loading ? tCommon("processing") : t("signupButton")}
@@ -145,14 +145,14 @@ export default function SignupPage() {
         </p>
       )}
 
-      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 text-sm text-slate-600">
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-2 text-sm text-[#1e293b]/70">
         <span>
-          {t("haveAccount")} {" "}
-          <Link className="font-medium text-slate-900" href="/login">
+          {t("haveAccount")}{" "}
+          <Link className="font-semibold text-[#1152d4]" href="/login">
             {t("loginButton")}
           </Link>
         </span>
-        <Link className="text-slate-500 hover:text-slate-700" href="/">
+        <Link className="text-[#1e293b]/50 hover:text-[#1e293b]" href="/">
           {tCommon("home")}
         </Link>
       </div>

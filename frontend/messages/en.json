@@ -8,7 +8,10 @@
     "language": "Language",
     "processing": "Processing...",
     "loggedInAs": "Logged in: {email}",
-    "loggedOut": "Not signed in."
+    "loggedOut": "Not signed in.",
+    "profile": "Profile",
+    "explore": "Explore",
+    "trends": "Trends"
   },
   "HomePage": {
     "headline": "Check your decision risk before you act",
@@ -91,5 +94,18 @@
     "signupSuccessVerify": "Sign-up complete! Please verify your email.",
     "errorMissingEmailPassword": "Please enter email and password.",
     "errorPasswordMismatch": "Passwords do not match."
+  },
+  "Profile": {
+    "title": "Profile",
+    "subtitle": "Manage your email and basic profile details.",
+    "emailLabel": "Email",
+    "nameLabel": "Name",
+    "nicknameLabel": "Nickname",
+    "namePlaceholder": "e.g. Alex",
+    "nicknamePlaceholder": "e.g. Lex",
+    "saveButton": "Save profile",
+    "saveSuccess": "Profile saved.",
+    "notSignedIn": "You need to log in to view your profile.",
+    "goToLogin": "Go to login"
   }
 }

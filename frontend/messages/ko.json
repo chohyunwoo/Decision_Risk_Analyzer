@@ -8,7 +8,10 @@
     "language": "언어",
     "processing": "처리 중...",
     "loggedInAs": "로그인: {email}",
-    "loggedOut": "로그인 상태가 아닙니다."
+    "loggedOut": "로그인 상태가 아닙니다.",
+    "profile": "프로필",
+    "explore": "탐색",
+    "trends": "트렌드"
   },
   "HomePage": {
     "headline": "결정 전에 리스크를 점검하세요",
@@ -91,5 +94,18 @@
     "signupSuccessVerify": "가입 완료! 이메일 인증을 진행해주세요.",
     "errorMissingEmailPassword": "이메일과 비밀번호를 입력해주세요.",
     "errorPasswordMismatch": "비밀번호가 일치하지 않습니다."
+  },
+  "Profile": {
+    "title": "프로필",
+    "subtitle": "이메일과 기본 프로필 정보를 관리합니다.",
+    "emailLabel": "이메일",
+    "nameLabel": "이름",
+    "nicknameLabel": "닉네임",
+    "namePlaceholder": "예: 홍길동",
+    "nicknamePlaceholder": "예: 길동",
+    "saveButton": "저장하기",
+    "saveSuccess": "프로필이 저장되었습니다.",
+    "notSignedIn": "로그인이 필요합니다.",
+    "goToLogin": "로그인으로 이동"
   }
 }

@@ -8,7 +8,10 @@
     "language": "言語",
     "processing": "処理中...",
     "loggedInAs": "ログイン: {email}",
-    "loggedOut": "ログインしていません。"
+    "loggedOut": "ログインしていません。",
+    "profile": "プロフィール",
+    "explore": "探索",
+    "trends": "トレンド"
   },
   "HomePage": {
     "headline": "行動する前にリスクを確認しましょう",
@@ -91,5 +94,18 @@
     "signupSuccessVerify": "登録完了。メール認証を行ってください。",
     "errorMissingEmailPassword": "メールとパスワードを入力してください。",
     "errorPasswordMismatch": "パスワードが一致しません。"
+  },
+  "Profile": {
+    "title": "プロフィール",
+    "subtitle": "メールと基本情報を管理します。",
+    "emailLabel": "メール",
+    "nameLabel": "名前",
+    "nicknameLabel": "ニックネーム",
+    "namePlaceholder": "例: 太郎",
+    "nicknamePlaceholder": "例: タロ",
+    "saveButton": "保存する",
+    "saveSuccess": "プロフィールを保存しました。",
+    "notSignedIn": "ログインが必要です。",
+    "goToLogin": "ログインへ"
   }
 }
