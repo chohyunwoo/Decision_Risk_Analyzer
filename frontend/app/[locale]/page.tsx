@@ -589,7 +589,12 @@ export default function Home() {
         return;
       }
       const payload = (await response.json()) as { text?: string };
-      setWeeklyAiText(payload.text ?? "");
+      if (!payload.text) {
+        setWeeklyAiError(t("aiWeeklyError"));
+        setWeeklyAiText("");
+        return;
+      }
+      setWeeklyAiText(payload.text);
     } catch {
       setWeeklyAiError(t("aiWeeklyError"));
       setWeeklyAiText("");
@@ -909,6 +914,35 @@ export default function Home() {
           </p>
           <p>{t("riskFormula")}</p>
         </section>
+
+        {score !== null && labelKey && (
+          <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("reportTitle")}</h2>
+              <span className="text-xs font-semibold text-[#1152d4]">
+                {t("reportBadge")}
+              </span>
+            </div>
+            <div className="grid gap-3 text-sm text-slate-600">
+              <p className="text-base font-semibold text-slate-800">
+                {t("reportSummary", { label: getRiskLabel(labelKey), score })}
+              </p>
+              <div className="grid gap-2 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("reportInputs")}</p>
+                <p>
+                  {t("reportInputLine", {
+                    menu: menu.trim() || t("noMenu"),
+                    price: price.trim() || "-",
+                    time: time.trim() || "-",
+                    people: people.trim() || "-"
+                  })}
+                </p>
+                <p className="text-xs text-slate-500">{t("reportRegion")}: {region}</p>
+              </div>
+              <p className="text-xs text-slate-500">{t("reportTip")}</p>
+            </div>
+          </section>
+        )}
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">

@@ -146,5 +146,12 @@ Avoid medical/financial/legal advice.`;
   const json = (await response.json()) as Record<string, unknown>;
   const text = extractText(json);
 
+  if (!text) {
+    return NextResponse.json(
+      { error: "Empty AI response." },
+      { status: 500 }
+    );
+  }
+
   return NextResponse.json({ text });
 };
