@@ -398,6 +398,12 @@ export default function Home() {
     [filteredRecords]
   );
 
+  const getRiskLabel = (key: RiskLabelKey) => {
+    if (key === "low") return t("riskLabelLow");
+    if (key === "medium") return t("riskLabelMedium");
+    return t("riskLabelHigh");
+  };
+
   const regionConfig = REGION_CONFIG[region];
   const isPro = plan === "pro";
 
@@ -435,12 +441,6 @@ export default function Home() {
       label: getRiskLabel(labelKey)
     });
   }, [isPro, labelKey, score, price, time, people, region, locale, t]);
-
-  const getRiskLabel = (key: RiskLabelKey) => {
-    if (key === "low") return t("riskLabelLow");
-    if (key === "medium") return t("riskLabelMedium");
-    return t("riskLabelHigh");
-  };
 
   const handleSignOut = async () => {
     setAuthLoading(true);
