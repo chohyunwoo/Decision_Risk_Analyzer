@@ -184,6 +184,9 @@ export default function Home() {
   const [authEmail, setAuthEmail] = useState<string | null>(null);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
+  const [plan, setPlan] = useState<"free" | "pro">("free");
+  const [planLoading, setPlanLoading] = useState(true);
+  const [planError, setPlanError] = useState<string | null>(null);
   const [region, setRegion] = useState<Region>("KR");
   const [score, setScore] = useState<number | null>(null);
   const [labelKey, setLabelKey] = useState<RiskLabelKey | null>(null);
@@ -194,14 +197,47 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
+    const loadPlan = async (userId: string | null | undefined) => {
+      if (!userId) {
+        setPlan("free");
+        setPlanLoading(false);
+        setPlanError(null);
+        return;
+      }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (token) {
+        await fetch("/api/polar/restore", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` }
+        });
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("plan")
+        .eq("id", userId)
+        .single();
+      if (!active) return;
+      if (error) {
+        setPlan("free");
+        setPlanError(error.message);
+      } else {
+        setPlan(data?.plan === "pro" ? "pro" : "free");
+        setPlanError(null);
+      }
+      setPlanLoading(false);
+    };
+
     supabase.auth.getSession().then(({ data }) => {
       if (!active) return;
       setAuthEmail(data.session?.user?.email ?? null);
       setAuthUserId(data.session?.user?.id ?? null);
+      loadPlan(data.session?.user?.id ?? null);
     });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthEmail(session?.user?.email ?? null);
       setAuthUserId(session?.user?.id ?? null);
+      loadPlan(session?.user?.id ?? null);
     });
     return () => {
       active = false;
@@ -357,6 +393,7 @@ export default function Home() {
   );
 
   const regionConfig = REGION_CONFIG[region];
+  const isPro = plan === "pro";
 
   const checkoutUrl = useMemo(() => {
     const params = new URLSearchParams();
@@ -371,6 +408,27 @@ export default function Home() {
     }
     return `/api/polar/checkout?${params.toString()}`;
   }, [authEmail, authUserId]);
+
+  const aiExplanation = useMemo(() => {
+    if (!isPro || !labelKey || score === null) return "";
+    const priceValue = Number.parseInt(price, 10);
+    const timeValue = Number.parseInt(time, 10);
+    const peopleValue = Number.parseInt(people, 10);
+    if (
+      Number.isNaN(priceValue) ||
+      Number.isNaN(timeValue) ||
+      Number.isNaN(peopleValue) ||
+      peopleValue <= 0
+    ) {
+      return "";
+    }
+    const perPerson = priceValue / peopleValue;
+    return t("aiExplanationBody", {
+      pricePerPerson: formatCurrency(perPerson, region, locale),
+      time: timeValue,
+      label: getRiskLabel(labelKey)
+    });
+  }, [isPro, labelKey, score, price, time, people, region, locale, t]);
 
   const getRiskLabel = (key: RiskLabelKey) => {
     if (key === "low") return t("riskLabelLow");
@@ -479,6 +537,9 @@ export default function Home() {
               {authEmail
                 ? tCommon("loggedInAs", { email: authEmail })
                 : tCommon("loggedOut")}
+            </span>
+            <span className="text-[10px] font-semibold text-[#1e293b]/60">
+              Plan: {planLoading ? "..." : plan}
             </span>
             {!authEmail ? (
               <>
@@ -736,28 +797,44 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
-            <span className="text-xs text-slate-500">{t("last7Days")}</span>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">{t("totalSpend")}</p>
-              <p className="text-lg font-semibold">
-                {formatCurrency(weeklySummary.totalSpend, region, locale)}
-              </p>
+        {isPro ? (
+          <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
+              <span className="text-xs text-slate-500">{t("last7Days")}</span>
             </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">{t("avgRisk")}</p>
-              <p className="text-lg font-semibold">{weeklySummary.avgRisk}</p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("totalSpend")}</p>
+                <p className="text-lg font-semibold">
+                  {formatCurrency(weeklySummary.totalSpend, region, locale)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("avgRisk")}</p>
+                <p className="text-lg font-semibold">{weeklySummary.avgRisk}</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("maxRisk")}</p>
+                <p className="text-lg font-semibold">{weeklySummary.maxRisk}</p>
+              </div>
             </div>
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">{t("maxRisk")}</p>
-              <p className="text-lg font-semibold">{weeklySummary.maxRisk}</p>
+          </section>
+        ) : (
+          <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
+              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
             </div>
-          </div>
-        </section>
+            <p className="text-sm text-slate-500">{t("weeklySummaryLocked")}</p>
+            <a
+              href={checkoutUrl}
+              className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            >
+              {t("upgradeToUnlock")}
+            </a>
+          </section>
+        )}
 
         <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-sm text-slate-600">
           <div className="flex items-center justify-between">
@@ -770,6 +847,30 @@ export default function Home() {
             {score === null || !labelKey ? t("noScore") : getRiskLabel(labelKey)}
           </p>
           <p>{t("riskFormula")}</p>
+        </section>
+
+        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">{t("aiExplanationTitle")}</h2>
+            {!planLoading && !isPro && (
+              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
+            )}
+          </div>
+          {isPro ? (
+            <p className="text-sm text-slate-600">
+              {aiExplanation || t("aiExplanationEmpty")}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-sm text-slate-500">{t("aiExplanationLocked")}</p>
+              <a
+                href={checkoutUrl}
+                className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+              >
+                {t("upgradeToUnlock")}
+              </a>
+            </div>
+          )}
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
@@ -801,54 +902,56 @@ export default function Home() {
           )}
         </section>
 
-        <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold">{t("calendar")}</h2>
-              <p className="text-xs text-slate-500">{t("calendarHint")}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-slate-400"
-                onClick={() =>
-                  setCurrentMonth(
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() - 1,
-                      1
+        {isPro ? (
+          <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">{t("calendar")}</h2>
+                <p className="text-xs text-slate-500">{t("calendarHint")}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-slate-400"
+                  onClick={() =>
+                    setCurrentMonth(
+                      new Date(
+                        currentMonth.getFullYear(),
+                        currentMonth.getMonth() - 1,
+                        1
+                      )
                     )
-                  )
-                }
-              >
-                {t("prev")}
-              </button>
-              <span className="text-sm font-medium text-slate-700">{monthKey}</span>
-              <button
-                type="button"
-                className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-slate-400"
-                onClick={() =>
-                  setCurrentMonth(
-                    new Date(
-                      currentMonth.getFullYear(),
-                      currentMonth.getMonth() + 1,
-                      1
+                  }
+                >
+                  {t("prev")}
+                </button>
+                <span className="text-sm font-medium text-slate-700">
+                  {monthKey}
+                </span>
+                <button
+                  type="button"
+                  className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-slate-400"
+                  onClick={() =>
+                    setCurrentMonth(
+                      new Date(
+                        currentMonth.getFullYear(),
+                        currentMonth.getMonth() + 1,
+                        1
+                      )
                     )
-                  )
-                }
-              >
-                {t("next")}
-              </button>
+                  }
+                >
+                  {t("next")}
+                </button>
+              </div>
             </div>
-          </div>
-          {records.length === 0 && (
-            <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-              {t("noRecordsCalendar")}
-            </div>
-          )}
-          <div className="grid grid-cols-7 gap-2 text-xs text-slate-500">
-            {
-              [
+            {records.length === 0 && (
+              <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
+                {t("noRecordsCalendar")}
+              </div>
+            )}
+            <div className="grid grid-cols-7 gap-2 text-xs text-slate-500">
+              {[
                 t("weekdaySun"),
                 t("weekdayMon"),
                 t("weekdayTue"),
@@ -860,52 +963,68 @@ export default function Home() {
                 <div key={day} className="text-center">
                   {day}
                 </div>
-              ))
-            }
-          </div>
-          <div className="grid grid-cols-7 gap-2">
-            {buildMonthGrid(currentMonth).cells.map((cell, index) => {
-              if (!cell) {
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-2">
+              {buildMonthGrid(currentMonth).cells.map((cell, index) => {
+                if (!cell) {
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="h-20 rounded-xl border border-dashed border-slate-100 bg-slate-50/60"
+                    />
+                  );
+                }
+
+                const dateKey = `${monthKey}-${String(cell).padStart(2, "0")}`;
+                const stats = monthStats[dateKey];
+
                 return (
-                  <div
-                    key={`empty-${index}`}
-                    className="h-20 rounded-xl border border-dashed border-slate-100 bg-slate-50/60"
-                  />
+                  <button
+                    key={dateKey}
+                    type="button"
+                    className={`flex h-20 flex-col items-start justify-between rounded-xl border px-2 py-2 text-left text-xs transition ${
+                      selectedDate === dateKey
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 text-slate-700 hover:border-slate-400"
+                    }`}
+                    onClick={() => setSelectedDate(dateKey)}
+                  >
+                    <span className="text-xs font-semibold">{cell}</span>
+                    {stats ? (
+                      <div className="text-[10px]">
+                        <p>
+                          {formatCurrency(stats.totalSpend, region, locale)}
+                        </p>
+                        <p>
+                          {t("risk")} {stats.avgRisk}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="text-[10px] text-slate-400">
+                        {t("noRecord")}
+                      </span>
+                    )}
+                  </button>
                 );
-              }
-
-              const dateKey = `${monthKey}-${String(cell).padStart(2, "0")}`;
-              const stats = monthStats[dateKey];
-
-              return (
-                <button
-                  key={dateKey}
-                  type="button"
-                  className={`flex h-20 flex-col items-start justify-between rounded-xl border px-2 py-2 text-left text-xs transition ${
-                    selectedDate === dateKey
-                      ? "border-slate-900 bg-slate-900 text-white"
-                      : "border-slate-200 text-slate-700 hover:border-slate-400"
-                  }`}
-                  onClick={() => setSelectedDate(dateKey)}
-                >
-                  <span className="text-xs font-semibold">{cell}</span>
-                  {stats ? (
-                    <div className="text-[10px]">
-                      <p>{formatCurrency(stats.totalSpend, region, locale)}</p>
-                      <p>
-                        {t("risk")} {stats.avgRisk}
-                      </p>
-                    </div>
-                  ) : (
-                    <span className="text-[10px] text-slate-400">
-                      {t("noRecord")}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </section>
+              })}
+            </div>
+          </section>
+        ) : (
+          <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("calendar")}</h2>
+              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
+            </div>
+            <p className="text-sm text-slate-500">{t("calendarLocked")}</p>
+            <a
+              href={checkoutUrl}
+              className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            >
+              {t("upgradeToUnlock")}
+            </a>
+          </section>
+        )}
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">

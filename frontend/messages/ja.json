@@ -74,7 +74,14 @@
                      "risk":  "リスク",
                      "recordMeta":  "{price} | {time}分 | {people}人",
                      "noRecord":  "記録なし",
-                     "upgrade":  "プランをアップグレード"
+                     "upgrade":  "プランをアップグレード",
+                     "upgradeToUnlock":  "アップグレードで解除",
+                     "aiExplanationTitle":  "AIの説明",
+                     "aiExplanationBody":  "1人あたり{pricePerPerson}、{time}分を基準にリスクは{label}です。",
+                     "aiExplanationEmpty":  "分析を実行すると説明が生成されます。",
+                     "aiExplanationLocked":  "AIの説明はProプランで利用できます。",
+                     "calendarLocked":  "カレンダーはProプランで利用できます。",
+                     "weeklySummaryLocked":  "週次サマリーはProプランで利用できます。"
                  },
     "Auth":  {
                  "loginTitle":  "ログイン",
