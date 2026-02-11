@@ -109,6 +109,34 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 ---
 
+## Polar 결제 (Checkout + Webhook + 자동 환불)
+
+### 1) 환경 변수
+`frontend/.env.local` 또는 Cloudflare Pages 환경 변수에 추가:
+```bash
+POLAR_ACCESS_TOKEN=your_polar_access_token
+POLAR_SERVER=sandbox
+POLAR_SUCCESS_URL=https://your-domain.com/?checkout=success
+POLAR_RETURN_URL=https://your-domain.com/?checkout=cancel
+POLAR_WEBHOOK_SECRET=your_polar_webhook_secret
+```
+
+### 2) 웹훅 설정 (Polar)
+- URL: `https://<your-domain>/api/polar/webhook`
+- 이벤트: `order.paid`
+- Webhook Secret → `POLAR_WEBHOOK_SECRET`
+
+### 3) 권한 스코프
+- 필수: `checkouts:write`
+- 자동 환불: `refunds:write`
+
+### 4) 동작 방식
+- `/api/polar/checkout`로 체크아웃 생성
+- 결제 완료(`order.paid`) 시 프로필에 `plan=pro` 부여
+- 프로필 업데이트 실패 시 환불 자동 실행
+
+---
+
 ## Backend Run (Spring Boot + PostgreSQL)
 
 ### 1) PostgreSQL 준비
