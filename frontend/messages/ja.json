@@ -97,7 +97,9 @@
                      "reportInputs":  "入力内容",
                      "reportInputLine":  "メニュー: {menu} · 価格: {price} · 時間: {time} · 人数: {people}",
                      "reportRegion":  "地域",
-                     "reportTip":  "ヒント: メニューを具体化したり、価格や時間を調整するとリスクを下げられます。"
+                     "reportTip":  "ヒント: メニューを具体化したり、価格や時間を調整するとリスクを下げられます。",
+                     "regionJP":  "日本（東京）",
+                     "pricePlaceholderJP":  "例: 1500"
                  },
     "Auth":  {
                  "loginTitle":  "ログイン",

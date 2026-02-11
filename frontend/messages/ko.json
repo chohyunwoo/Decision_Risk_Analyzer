@@ -97,7 +97,9 @@
                      "reportInputs":  "입력값",
                      "reportInputLine":  "메뉴: {menu} · 가격: {price} · 시간: {time} · 인원: {people}",
                      "reportRegion":  "지역",
-                     "reportTip":  "팁: 메뉴를 구체화하거나 가격/시간을 조정하면 리스크를 낮출 수 있습니다."
+                     "reportTip":  "팁: 메뉴를 구체화하거나 가격/시간을 조정하면 리스크를 낮출 수 있습니다.",
+                     "regionJP":  "일본 (도쿄)",
+                     "pricePlaceholderJP":  "예: 1500"
                  },
     "Auth":  {
                  "loginTitle":  "로그인",

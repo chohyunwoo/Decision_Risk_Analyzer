@@ -9,7 +9,7 @@ const POLAR_PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
 
 type RiskLabelKey = "low" | "medium" | "high";
 
-type Region = "KR" | "US";
+type Region = "KR" | "US" | "JP";
 
 type DecisionRecord = {
   id: string;
@@ -29,8 +29,11 @@ const REGION_CONFIG: Record<
   {
     labelKey: "regionKR" | "regionUS";
     baseOrderAmount: number;
-    currency: "KRW" | "USD";
-    pricePlaceholderKey: "pricePlaceholderKR" | "pricePlaceholderUS";
+    currency: "KRW" | "USD" | "JPY";
+    pricePlaceholderKey:
+      | "pricePlaceholderKR"
+      | "pricePlaceholderUS"
+      | "pricePlaceholderJP";
   }
 > = {
   KR: {
@@ -44,6 +47,12 @@ const REGION_CONFIG: Record<
     baseOrderAmount: 31.09,
     currency: "USD",
     pricePlaceholderKey: "pricePlaceholderUS"
+  },
+  JP: {
+    labelKey: "regionJP",
+    baseOrderAmount: 1500,
+    currency: "JPY",
+    pricePlaceholderKey: "pricePlaceholderJP"
   }
 };
 
@@ -66,7 +75,8 @@ function toMonthKey(date: Date) {
 }
 
 function formatCurrency(amount: number, region: Region, locale: string) {
-  const currency = region === "US" ? "USD" : "KRW";
+  const currency =
+    region === "US" ? "USD" : region === "JP" ? "JPY" : "KRW";
   const formatter = new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
