@@ -4,9 +4,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 
 const LOCALES = [
-  { code: "ko", label: "한국어" },
-  { code: "en", label: "English" },
-  { code: "ja", label: "日本語" }
+  { code: "ko", label: "KR" },
+  { code: "en", label: "EN" },
+  { code: "ja", label: "JA" }
 ] as const;
 
 export default function LocaleSwitcher() {

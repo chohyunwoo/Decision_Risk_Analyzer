@@ -1,11 +1,15 @@
 "use client";
 
 import { LEGAL_INFO } from "@/lib/legal";
+import LocaleSwitcher from "@/components/LocaleSwitcher";
 
 export default function RefundPolicyPage() {
   return (
     <div className="min-h-screen bg-[#f6f6f8] text-[#1e293b]">
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-12">
+        <section className="flex justify-end">
+          <LocaleSwitcher />
+        </section>
         <section className="rounded-xl border border-[#1152d4]/10 bg-white p-6 shadow-xl shadow-[#1152d4]/5">
           <h1 className="text-2xl font-extrabold text-[#0f172a]">
             Refund Policy / 환불 규정
