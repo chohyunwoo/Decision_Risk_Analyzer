@@ -1,12 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "@/lib/supabase/client";
+import { useLocale, useTranslations } from "next-intl";
 
 const TRIAL_KEY = "dra_trial_count_v1";
 const RECORDS_KEY = "dra_records_v1";
 const MAX_TRIALS = 3;
 
-type RiskLabel = "낮은 리스크" | "보통 리스크" | "높은 리스크";
+type RiskLabelKey = "low" | "medium" | "high";
+
 type Region = "KR" | "US";
 
 type DecisionRecord = {
@@ -19,25 +22,30 @@ type DecisionRecord = {
   timeMinutes: number;
   region: Region;
   riskScore: number;
-  riskLabel: RiskLabel;
+  riskLabelKey: RiskLabelKey;
 };
 
-const REGION_PROFILES: Record<
+const REGION_CONFIG: Record<
   Region,
-  { label: string; baseOrderAmount: number; currency: string; pricePlaceholder: string }
+  {
+    labelKey: "regionKR" | "regionUS";
+    baseOrderAmount: number;
+    currency: "KRW" | "USD";
+    pricePlaceholderKey: "pricePlaceholderKR" | "pricePlaceholderUS";
+  }
 > = {
   KR: {
-    label: "서울(한국)",
+    labelKey: "regionKR",
     baseOrderAmount: 26216,
-    currency: "원",
-    pricePlaceholder: "예: 28000",
+    currency: "KRW",
+    pricePlaceholderKey: "pricePlaceholderKR"
   },
   US: {
-    label: "미국",
+    labelKey: "regionUS",
     baseOrderAmount: 31.09,
     currency: "USD",
-    pricePlaceholder: "예: 30",
-  },
+    pricePlaceholderKey: "pricePlaceholderUS"
+  }
 };
 
 const WASTE_WEIGHT = 0.7;
@@ -58,11 +66,15 @@ function toMonthKey(date: Date) {
   return `${year}-${month}`;
 }
 
-function formatCurrency(amount: number, region: Region) {
-  if (region === "US") {
-    return `$${amount.toLocaleString("en-US")}`;
-  }
-  return `${amount.toLocaleString()}원`;
+function formatCurrency(amount: number, region: Region, locale: string) {
+  const currency = region === "US" ? "USD" : "KRW";
+  const formatter = new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    maximumFractionDigits: region === "US" ? 2 : 0
+  });
+
+  return formatter.format(amount);
 }
 
 function buildMonthGrid(date: Date) {
@@ -106,7 +118,7 @@ function computeWasteRisk(
   totalPrice: number,
   timeMinutes: number,
   people: number,
-  baseOrderAmount: number,
+  baseOrderAmount: number
 ) {
   const safePeople = Math.max(1, people);
   const perPersonPrice = totalPrice / safePeople;
@@ -114,7 +126,7 @@ function computeWasteRisk(
   const timeScore = getTimeBandScore(timeMinutes);
 
   return Math.round(
-    priceScore * PRICE_WEIGHT_IN_WASTE + timeScore * TIME_WEIGHT_IN_WASTE,
+    priceScore * PRICE_WEIGHT_IN_WASTE + timeScore * TIME_WEIGHT_IN_WASTE
   );
 }
 
@@ -127,41 +139,74 @@ function computeRiskScore(
   priceValue: number,
   timeValue: number,
   people: number,
-  baseOrderAmount: number,
+  baseOrderAmount: number
 ) {
   const wasteRisk = computeWasteRisk(
     priceValue,
     timeValue,
     people,
-    baseOrderAmount,
+    baseOrderAmount
   );
   const uncertaintyRisk = computeUncertaintyRisk(menu);
   const total = Math.round(
-    wasteRisk * WASTE_WEIGHT + uncertaintyRisk * UNCERTAINTY_WEIGHT,
+    wasteRisk * WASTE_WEIGHT + uncertaintyRisk * UNCERTAINTY_WEIGHT
   );
 
   return Math.min(Math.max(total, 0), 100);
 }
 
-function riskLabel(score: number): RiskLabel {
-  if (score < 40) return "낮은 리스크";
-  if (score < 70) return "보통 리스크";
-  return "높은 리스크";
+function riskLabelKey(score: number): RiskLabelKey {
+  if (score < 40) return "low";
+  if (score < 70) return "medium";
+  return "high";
+}
+
+function normalizeRiskLabelKey(value: unknown, score: number): RiskLabelKey {
+  if (value === "low" || value === "medium" || value === "high") {
+    return value;
+  }
+  if (typeof value === "string") {
+    const lowered = value.toLowerCase();
+    if (lowered.includes("low")) return "low";
+    if (lowered.includes("medium")) return "medium";
+    if (lowered.includes("high")) return "high";
+  }
+  return riskLabelKey(score);
 }
 
 export default function Home() {
+  const t = useTranslations("HomePage");
+  const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [menu, setMenu] = useState("");
   const [price, setPrice] = useState("");
   const [time, setTime] = useState("");
   const [people, setPeople] = useState("1");
+  const [authEmail, setAuthEmail] = useState<string | null>(null);
+  const [authLoading, setAuthLoading] = useState(false);
   const [region, setRegion] = useState<Region>("KR");
   const [score, setScore] = useState<number | null>(null);
-  const [label, setLabel] = useState<RiskLabel | null>(null);
+  const [labelKey, setLabelKey] = useState<RiskLabelKey | null>(null);
   const [message, setMessage] = useState("");
   const [trialCount, setTrialCount] = useState(0);
   const [records, setRecords] = useState<DecisionRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
+
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setAuthEmail(data.session?.user?.email ?? null);
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthEmail(session?.user?.email ?? null);
+    });
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     const stored = localStorage.getItem(TRIAL_KEY);
@@ -177,6 +222,13 @@ export default function Home() {
           ...record,
           people: record.people ?? 1,
           region: (record.region ?? "KR") as Region,
+          riskLabelKey: normalizeRiskLabelKey(
+            (record as { riskLabelKey?: RiskLabelKey; riskLabel?: string })
+              .riskLabelKey ??
+              (record as { riskLabelKey?: RiskLabelKey; riskLabel?: string })
+                .riskLabel,
+            record.riskScore
+          )
         }))
       : [];
     setRecords(normalized);
@@ -188,7 +240,7 @@ export default function Home() {
 
   const remainingTrials = useMemo(
     () => Math.max(0, MAX_TRIALS - trialCount),
-    [trialCount],
+    [trialCount]
   );
 
   const filteredRecords = useMemo(() => {
@@ -202,7 +254,7 @@ export default function Home() {
         acc[record.date].push(record);
         return acc;
       },
-      {},
+      {}
     );
   }, [filteredRecords]);
 
@@ -218,7 +270,7 @@ export default function Home() {
       if (!date.startsWith(monthKey)) return;
       const totalSpend = items.reduce((sum, r) => sum + r.price, 0);
       const avgRisk = Math.round(
-        items.reduce((sum, r) => sum + r.riskScore, 0) / items.length,
+        items.reduce((sum, r) => sum + r.riskScore, 0) / items.length
       );
       stats[date] = { totalSpend, avgRisk, count: items.length };
     });
@@ -257,7 +309,7 @@ export default function Home() {
       totalSpend,
       avgRisk: Math.round(totalRisk / recent.length),
       maxRisk,
-      count: recent.length,
+      count: recent.length
     };
   }, [filteredRecords]);
 
@@ -279,13 +331,13 @@ export default function Home() {
         items.length === 0
           ? 0
           : Math.round(
-              items.reduce((sum, r) => sum + r.riskScore, 0) / items.length,
+              items.reduce((sum, r) => sum + r.riskScore, 0) / items.length
             );
       days.push({
         date: dateKey,
         label: `${day.getMonth() + 1}/${day.getDate()}`,
         avgRisk,
-        count: items.length,
+        count: items.length
       });
     }
 
@@ -294,7 +346,7 @@ export default function Home() {
 
   const hasTimelineData = useMemo(
     () => timelineData.some((day) => day.count > 0),
-    [timelineData],
+    [timelineData]
   );
 
   const recentMenus = useMemo(() => {
@@ -311,21 +363,36 @@ export default function Home() {
 
   const lastRecord = useMemo(
     () => filteredRecords[0] ?? null,
-    [filteredRecords],
+    [filteredRecords]
   );
 
-  const regionProfile = REGION_PROFILES[region];
+  const regionConfig = REGION_CONFIG[region];
+
+  const getRiskLabel = (key: RiskLabelKey) => {
+    if (key === "low") return t("riskLabelLow");
+    if (key === "medium") return t("riskLabelMedium");
+    return t("riskLabelHigh");
+  };
+
+  const handleSignOut = async () => {
+    setAuthLoading(true);
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error(error);
+    }
+    setAuthLoading(false);
+  };
 
   const handleAnalyze = () => {
     setMessage("");
 
     if (!price.trim() || !time.trim() || !people.trim()) {
-      setMessage("가격, 시간, 인원 수를 입력해 주세요.");
+      setMessage(t("messageMissing"));
       return;
     }
 
     if (trialCount >= MAX_TRIALS) {
-      setMessage("무료 체험 3회가 모두 소진되었습니다.");
+      setMessage(t("messageTrials"));
       return;
     }
 
@@ -343,7 +410,7 @@ export default function Home() {
       Number.isNaN(peopleValue) ||
       peopleValue <= 0
     ) {
-      setMessage("가격, 시간, 인원 수는 올바른 숫자로 입력해 주세요.");
+      setMessage(t("messageInvalid"));
       return;
     }
 
@@ -352,9 +419,9 @@ export default function Home() {
       priceValue,
       timeValue,
       peopleValue,
-      regionProfile.baseOrderAmount,
+      regionConfig.baseOrderAmount
     );
-    const computedLabel = riskLabel(computedScore);
+    const computedLabelKey = riskLabelKey(computedScore);
 
     const now = new Date();
     const record: DecisionRecord = {
@@ -367,7 +434,7 @@ export default function Home() {
       timeMinutes: timeValue,
       region,
       riskScore: computedScore,
-      riskLabel: computedLabel,
+      riskLabelKey: computedLabelKey
     };
 
     const nextRecords = [record, ...records];
@@ -375,7 +442,7 @@ export default function Home() {
     setRecords(nextRecords);
     setSelectedDate(record.date);
     setScore(computedScore);
-    setLabel(computedLabel);
+    setLabelKey(computedLabelKey);
   };
 
   return (
@@ -383,12 +450,46 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-8">
         <header className="space-y-3">
           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-            Decision Risk Analyzer
+            {tCommon("appName")}
           </p>
-          <h1 className="text-3xl font-semibold">결정 전에 리스크를 점검하세요</h1>
-          <p className="text-slate-600">
-            간단한 입력으로 현재 상황의 리스크 점수를 계산합니다.
-          </p>
+
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600">
+            <span>
+              {authEmail
+                ? tCommon("loggedInAs", { email: authEmail })
+                : tCommon("loggedOut")}
+            </span>
+            {authEmail && (
+              <button
+                type="button"
+                className="rounded-full border border-slate-200 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-400 disabled:cursor-not-allowed"
+                onClick={handleSignOut}
+                disabled={authLoading}
+              >
+                {authLoading ? tCommon("processing") : tCommon("logout")}
+              </button>
+            )}
+          </div>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold">{t("headline")}</h1>
+              <p className="text-slate-600">{t("subhead")}</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {!authEmail && (<><a
+                href="./login"
+                className="rounded-full border border-slate-200 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 transition hover:border-slate-400"
+              >
+                {tCommon("login")}
+              </a>
+              <a
+                href="./signup"
+                className="rounded-full bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-slate-800"
+              >
+                {tCommon("signup")}
+              </a>
+            </>)}</div>
+          </div>
         </header>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -401,16 +502,16 @@ export default function Home() {
           >
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                지역
+                {t("regionLabel")}
               </label>
               <select
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
                 value={region}
                 onChange={(event) => setRegion(event.target.value as Region)}
               >
-                {Object.entries(REGION_PROFILES).map(([value, profile]) => (
+                {Object.entries(REGION_CONFIG).map(([value, config]) => (
                   <option key={value} value={value}>
-                    {profile.label}
+                    {t(config.labelKey)}
                   </option>
                 ))}
               </select>
@@ -418,11 +519,11 @@ export default function Home() {
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                메뉴 (선택)
+                {t("menuLabel")}
               </label>
               <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
-                placeholder="예: 김치찌개, 삼겹살, 파스타"
+                placeholder={t("menuPlaceholder")}
                 value={menu}
                 onChange={(event) => setMenu(event.target.value)}
               />
@@ -430,41 +531,78 @@ export default function Home() {
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                가격 ({regionProfile.currency})
+                {t("priceLabel", { currency: regionConfig.currency })}
               </label>
               <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
                 value={price}
                 onChange={(event) => setPrice(event.target.value)}
-                placeholder={regionProfile.pricePlaceholder}
+                placeholder={t(regionConfig.pricePlaceholderKey)}
                 inputMode="numeric"
               />
             </div>
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                예상 시간 (분)
+                {t("timeLabel")}
               </label>
               <input
                 className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
                 value={time}
                 onChange={(event) => setTime(event.target.value)}
-                placeholder="예: 30"
+                placeholder={t("timePlaceholder")}
                 inputMode="numeric"
               />
             </div>
 
             <div className="grid gap-2">
               <label className="text-sm font-medium text-slate-700">
-                인원 수
+                {t("peopleLabel")}
               </label>
-              <input
-                className="rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-slate-400"
-                value={people}
-                onChange={(event) => setPeople(event.target.value)}
-                placeholder="예: 1"
-                inputMode="numeric"
-              />
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  className="h-10 w-10 rounded-lg border border-slate-200 text-lg font-semibold text-slate-700 hover:border-slate-400"
+                  onClick={() =>
+                    setPeople((prev) => {
+                      const value = Number.parseInt(prev, 10);
+                      if (Number.isNaN(value) || value <= 1) return "1";
+                      return String(value - 1);
+                    })
+                  }
+                  aria-label={t("peopleDecrease")}
+                >
+                  -
+                </button>
+                <input
+                  className="w-20 rounded-lg border border-slate-200 px-3 py-2 text-center text-sm outline-none transition focus:border-slate-400"
+                  value={people}
+                  onChange={(event) => {
+                    const next = event.target.value.replace(/\D/g, "");
+                    if (!next) {
+                      setPeople("1");
+                      return;
+                    }
+                    setPeople(String(Math.max(1, Number.parseInt(next, 10))));
+                  }}
+                  inputMode="numeric"
+                />
+                <button
+                  type="button"
+                  className="h-10 w-10 rounded-lg border border-slate-200 text-lg font-semibold text-slate-700 hover:border-slate-400"
+                  onClick={() =>
+                    setPeople((prev) => {
+                      const value = Number.parseInt(prev, 10);
+                      if (Number.isNaN(value)) return "2";
+                      return String(value + 1);
+                    })
+                  }
+                  aria-label={t("peopleIncrease")}
+                >
+                  +
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">{t("peopleDefaultHint")}</p>
             </div>
 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -472,17 +610,17 @@ export default function Home() {
                 type="submit"
                 className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-800"
               >
-                Analyze
+                {t("analyze")}
               </button>
               <span className="text-xs text-slate-500">
-                무료 체험 잔여 {remainingTrials}회
+                {t("trialsRemaining", { count: remainingTrials })}
               </span>
             </div>
           </form>
 
           {recentMenus.length > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
-              <span>최근 메뉴</span>
+              <span>{t("recentMenus")}</span>
               {recentMenus.map((menuItem) => (
                 <button
                   key={menuItem}
@@ -508,7 +646,7 @@ export default function Home() {
                 setRegion(lastRecord.region ?? "KR");
               }}
             >
-              마지막 입력 복사
+              {t("useLastInput")}
             </button>
           )}
 
@@ -521,22 +659,22 @@ export default function Home() {
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">이번 주 요약</h2>
-            <span className="text-xs text-slate-500">최근 7일</span>
+            <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
+            <span className="text-xs text-slate-500">{t("last7Days")}</span>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">총 지출</p>
+              <p className="text-xs text-slate-500">{t("totalSpend")}</p>
               <p className="text-lg font-semibold">
-                {formatCurrency(weeklySummary.totalSpend, region)}
+                {formatCurrency(weeklySummary.totalSpend, region, locale)}
               </p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">평균 리스크</p>
+              <p className="text-xs text-slate-500">{t("avgRisk")}</p>
               <p className="text-lg font-semibold">{weeklySummary.avgRisk}</p>
             </div>
             <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-xs text-slate-500">최고 리스크</p>
+              <p className="text-xs text-slate-500">{t("maxRisk")}</p>
               <p className="text-lg font-semibold">{weeklySummary.maxRisk}</p>
             </div>
           </div>
@@ -544,65 +682,51 @@ export default function Home() {
 
         <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-sm text-slate-600">
           <div className="flex items-center justify-between">
-            <span>Risk Score</span>
+            <span>{t("riskScore")}</span>
             <span className="text-lg font-semibold text-slate-900">
               {score ?? "-"}
             </span>
           </div>
           <p className="text-base font-medium text-slate-800">
-            {score === null ? "결과가 여기에 표시됩니다." : label}
+            {score === null || !labelKey ? t("noScore") : getRiskLabel(labelKey)}
           </p>
-          <p>
-            낭비(가격·시간) 70% + 불확실성(메뉴) 30% 고정 가중치로
-            계산합니다.
-          </p>
+          <p>{t("riskFormula")}</p>
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">리스크 타임라인</h2>
-            <span className="text-xs text-slate-500">최근 7일</span>
+            <h2 className="text-lg font-semibold">{t("riskTimeline")}</h2>
+            <span className="text-xs text-slate-500">{t("last7Days")}</span>
           </div>
           {hasTimelineData ? (
             <div className="grid gap-2">
               <div className="flex items-end gap-2">
                 {timelineData.map((day) => (
-                  <div
-                    key={day.date}
-                    className="flex flex-1 flex-col items-center"
-                  >
+                  <div key={day.date} className="flex flex-1 flex-col items-center">
                     <div className="flex h-24 w-full items-end justify-center">
                       <div
                         className="w-4 rounded-full bg-slate-900/80"
                         style={{
-                          height: `${Math.max(8, day.avgRisk)}%`,
+                          height: `${Math.max(8, day.avgRisk)}%`
                         }}
                       />
                     </div>
-                    <span className="text-xs text-slate-500">
-                      {day.label}
-                    </span>
+                    <span className="text-xs text-slate-500">{day.label}</span>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-slate-500">
-                평균 리스크가 높을수록 막대가 길어집니다.
-              </p>
+              <p className="text-xs text-slate-500">{t("timelineHint")}</p>
             </div>
           ) : (
-            <p className="text-sm text-slate-500">
-              아직 기록이 없어 타임라인이 비어 있습니다.
-            </p>
+            <p className="text-sm text-slate-500">{t("timelineEmpty")}</p>
           )}
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-lg font-semibold">캘린더</h2>
-              <p className="text-xs text-slate-500">
-                날짜를 선택해 기록을 확인하세요.
-              </p>
+              <h2 className="text-lg font-semibold">{t("calendar")}</h2>
+              <p className="text-xs text-slate-500">{t("calendarHint")}</p>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -613,16 +737,14 @@ export default function Home() {
                     new Date(
                       currentMonth.getFullYear(),
                       currentMonth.getMonth() - 1,
-                      1,
-                    ),
+                      1
+                    )
                   )
                 }
               >
-                이전
+                {t("prev")}
               </button>
-              <span className="text-sm font-medium text-slate-700">
-                {monthKey}
-              </span>
+              <span className="text-sm font-medium text-slate-700">{monthKey}</span>
               <button
                 type="button"
                 className="rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-600 hover:border-slate-400"
@@ -631,27 +753,36 @@ export default function Home() {
                     new Date(
                       currentMonth.getFullYear(),
                       currentMonth.getMonth() + 1,
-                      1,
-                    ),
+                      1
+                    )
                   )
                 }
               >
-                다음
+                {t("next")}
               </button>
             </div>
           </div>
           {records.length === 0 && (
             <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-500">
-              아직 기록이 없습니다. 분석을 실행하면 캘린더에 자동으로
-              표시됩니다.
+              {t("noRecordsCalendar")}
             </div>
           )}
           <div className="grid grid-cols-7 gap-2 text-xs text-slate-500">
-            {["일", "월", "화", "수", "목", "금", "토"].map((day) => (
-              <div key={day} className="text-center">
-                {day}
-              </div>
-            ))}
+            {
+              [
+                t("weekdaySun"),
+                t("weekdayMon"),
+                t("weekdayTue"),
+                t("weekdayWed"),
+                t("weekdayThu"),
+                t("weekdayFri"),
+                t("weekdaySat")
+              ].map((day) => (
+                <div key={day} className="text-center">
+                  {day}
+                </div>
+              ))
+            }
           </div>
           <div className="grid grid-cols-7 gap-2">
             {buildMonthGrid(currentMonth).cells.map((cell, index) => {
@@ -681,13 +812,15 @@ export default function Home() {
                   <span className="text-xs font-semibold">{cell}</span>
                   {stats ? (
                     <div className="text-[10px]">
+                      <p>{formatCurrency(stats.totalSpend, region, locale)}</p>
                       <p>
-                        {formatCurrency(stats.totalSpend, region)}
+                        {t("risk")} {stats.avgRisk}
                       </p>
-                      <p>리스크 {stats.avgRisk}</p>
                     </div>
                   ) : (
-                    <span className="text-[10px] text-slate-400">기록 없음</span>
+                    <span className="text-[10px] text-slate-400">
+                      {t("noRecord")}
+                    </span>
                   )}
                 </button>
               );
@@ -697,16 +830,14 @@ export default function Home() {
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">기록</h2>
+            <h2 className="text-lg font-semibold">{t("records")}</h2>
             <span className="text-xs text-slate-500">
-              {filteredRecords.length}건
+              {t("recordsCount", { count: filteredRecords.length })}
             </span>
           </div>
 
           {sortedDates.length === 0 ? (
-            <p className="text-sm text-slate-500">
-              아직 기록이 없습니다. 분석을 실행하면 자동으로 저장됩니다.
-            </p>
+            <p className="text-sm text-slate-500">{t("noRecords")}</p>
           ) : (
             <div className="grid gap-3">
               <div className="flex flex-wrap gap-2">
@@ -729,7 +860,7 @@ export default function Home() {
               {selectedDate && (
                 <div className="grid gap-2">
                   <h3 className="text-sm font-semibold text-slate-700">
-                    {selectedDate} 기록
+                    {t("recordsForDate", { date: selectedDate })}
                   </h3>
                   <div className="grid gap-2">
                     {selectedRecords.map((record) => (
@@ -741,19 +872,24 @@ export default function Home() {
                           <span className="font-medium text-slate-800">
                             {record.menu.trim().length > 0
                               ? record.menu
-                              : "메뉴 미입력"}
+                              : t("noMenu")}
                           </span>
                           <span className="text-xs text-slate-500">
-                            {record.region === "US"
-                              ? `$${record.price.toLocaleString("en-US")}`
-                              : `${record.price.toLocaleString()}원`}{" "}
-                            · {record.timeMinutes}분 · {record.people}명
+                            {t("recordMeta", {
+                              price: formatCurrency(
+                                record.price,
+                                record.region,
+                                locale
+                              ),
+                              time: record.timeMinutes,
+                              people: record.people
+                            })}
                           </span>
                         </div>
                         <div className="text-right">
-                          <p className="text-xs text-slate-500">리스크</p>
+                          <p className="text-xs text-slate-500">{t("risk")}</p>
                           <p className="font-semibold text-slate-900">
-                            {record.riskLabel}
+                            {getRiskLabel(record.riskLabelKey)}
                           </p>
                         </div>
                       </div>
