@@ -29,7 +29,7 @@ const payloadSchema = z.object({
   price: z.number().positive(),
   time: z.number().positive(),
   people: z.number().positive(),
-  region: z.enum(["KR", "US"]),
+  region: z.enum(["KR", "US", "JP"]),
   score: z.number().min(0).max(100),
   label: z.string(),
   locale: z.string().optional().default("ko")
