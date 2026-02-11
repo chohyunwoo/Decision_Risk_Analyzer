@@ -11,7 +11,10 @@
     "loggedOut": "Not signed in.",
     "profile": "Profile",
     "explore": "Explore",
-    "trends": "Trends"
+    "trends": "Trends",
+    "disclaimerTitle": "Digital service notice",
+    "disclaimerBody": "This site provides a digital software service for decision support. It does not sell physical goods or provide offline services.",
+    "disclaimerNote": "Scores are informational only and are not medical, financial, or legal advice."
   },
   "HomePage": {
     "headline": "Check your decision risk before you act",

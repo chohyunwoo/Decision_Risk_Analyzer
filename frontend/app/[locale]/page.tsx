@@ -705,6 +705,14 @@ export default function Home() {
           )}
         </section>
 
+        <section className="rounded-xl border border-[#1152d4]/10 bg-white/70 p-4 text-xs text-[#1e293b]/60">
+          <p className="font-semibold text-[#1152d4]/70">
+            {tCommon("disclaimerTitle")}
+          </p>
+          <p className="mt-2">{tCommon("disclaimerBody")}</p>
+          <p className="mt-2">{tCommon("disclaimerNote")}</p>
+        </section>
+
         <section className="grid grid-cols-2 gap-4">
           <div className="rounded-xl border border-[#1152d4]/5 bg-white p-4 shadow-sm">
             <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-lg bg-[#1152d4]/10 text-[#1152d4]">

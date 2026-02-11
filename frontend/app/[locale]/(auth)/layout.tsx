@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 type AuthLayoutProps = {
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
@@ -5,6 +7,7 @@ type AuthLayoutProps = {
 
 export default async function AuthLayout({ children, params }: AuthLayoutProps) {
   const { locale } = await params;
+  const tCommon = await getTranslations("Common");
 
   return (
     <div className="min-h-screen bg-[#f6f6f8] text-[#1e293b]">
@@ -47,6 +50,15 @@ export default async function AuthLayout({ children, params }: AuthLayoutProps) 
       <main className="mx-auto flex w-full max-w-md flex-col gap-6 px-6 py-12">
         {children}
       </main>
+      <div className="mx-auto w-full max-w-md px-6 pb-10">
+        <section className="rounded-xl border border-[#1152d4]/10 bg-white/70 p-4 text-xs text-[#1e293b]/60">
+          <p className="font-semibold text-[#1152d4]/70">
+            {tCommon("disclaimerTitle")}
+          </p>
+          <p className="mt-2">{tCommon("disclaimerBody")}</p>
+          <p className="mt-2">{tCommon("disclaimerNote")}</p>
+        </section>
+      </div>
     </div>
   );
 }
