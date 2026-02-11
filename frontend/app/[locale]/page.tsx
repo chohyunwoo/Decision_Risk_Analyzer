@@ -27,7 +27,7 @@ type DecisionRecord = {
 const REGION_CONFIG: Record<
   Region,
   {
-    labelKey: "regionKR" | "regionUS";
+    labelKey: "regionKR" | "regionUS" | "regionJP";
     baseOrderAmount: number;
     currency: "KRW" | "USD" | "JPY";
     pricePlaceholderKey:
