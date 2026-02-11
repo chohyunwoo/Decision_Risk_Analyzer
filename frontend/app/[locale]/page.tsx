@@ -832,12 +832,17 @@ export default function Home() {
                 {t("analyze")}
               </button>
               <a
-                href={checkoutUrl}
+                href={authUserId ? checkoutUrl : "./login"}
                 className="rounded-xl border border-[#1152d4]/20 px-4 py-3 text-center text-sm font-semibold text-[#1152d4] transition-all active:scale-[0.98]"
               >
                 {t("upgrade")}
               </a>
             </div>
+            {!authUserId && (
+              <p className="text-xs text-[#1e293b]/60">
+                {t("upgradeLoginNotice")}
+              </p>
+            )}
           </form>
 
           {recentMenus.length > 0 && (

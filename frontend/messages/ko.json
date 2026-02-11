@@ -99,7 +99,8 @@
                      "reportRegion":  "지역",
                      "reportTip":  "팁: 메뉴를 구체화하거나 가격/시간을 조정하면 리스크를 낮출 수 있습니다.",
                      "regionJP":  "일본 (도쿄)",
-                     "pricePlaceholderJP":  "예: 1500"
+                     "pricePlaceholderJP":  "예: 1500",
+                     "upgradeLoginNotice":  "플랜 업그레이드를 위해 로그인하세요."
                  },
     "Auth":  {
                  "loginTitle":  "로그인",

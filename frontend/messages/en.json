@@ -37,6 +37,7 @@
     "peopleIncrease": "Increase people",
     "analyze": "Analyze",
     "upgrade": "Upgrade plan",
+    "upgradeLoginNotice": "Log in to upgrade your plan.",
     "upgradeToUnlock": "Upgrade to unlock",
     "aiExplanationTitle": "AI explanation",
     "aiExplanationBody": "Based on price per person {pricePerPerson} and time {time} min, the risk is {label}.",
