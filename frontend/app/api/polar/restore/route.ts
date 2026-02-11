@@ -29,7 +29,7 @@ const getApiBase = () => {
     : "https://api.polar.sh/v1";
 };
 
-const PRODUCT_ID = "de006367-bcb5-4fdf-9f94-529d9c8cfc69";
+const PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
 
 const fetchPolar = async (path: string) => {
   const token = process.env.POLAR_ACCESS_TOKEN;

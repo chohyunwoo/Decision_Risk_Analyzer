@@ -39,8 +39,17 @@
     "aiExplanationTitle": "AI explanation",
     "aiExplanationBody": "Based on price per person {pricePerPerson} and time {time} min, the risk is {label}.",
     "aiExplanationEmpty": "Run an analysis to generate an explanation.",
+    "aiExplanationLoading": "Generating AI explanation...",
     "aiExplanationLocked": "AI explanations are available on the Pro plan.",
+    "aiExplanationError": "Unable to generate an AI explanation right now.",
     "weeklySummaryLocked": "Weekly summary is available on the Pro plan.",
+    "recordsLocked": "Records are available on the Pro plan.",
+    "aiWeeklyTitle": "AI weekly insights",
+    "aiWeeklyButton": "Generate insights",
+    "aiWeeklyLoading": "Generating...",
+    "aiWeeklyHint": "Generate insights for patterns, next-week goal, and improvement tip.",
+    "aiWeeklyEmpty": "Run analyses this week to generate insights.",
+    "aiWeeklyError": "Unable to generate weekly insights right now.",
     "calendarLocked": "Calendar view is available on the Pro plan.",
     "trialsRemaining": "Free trials remaining: {count}",
     "recentMenus": "Recent menus",
@@ -120,6 +129,13 @@
     "notSignedIn": "You need to log in to view your profile.",
     "goToLogin": "Go to login",
     "adminLink": "Open admin console"
+  },
+  "Checkout": {
+    "cancelTitle": "Payment was not completed",
+    "cancelBody": "The payment failed or was canceled during processing.",
+    "cancelNote": "No charges were made. Please try again with a different method.",
+    "retryButton": "Try again",
+    "homeButton": "Back to home"
   },
   "Admin": {
     "title": "Admin Console",

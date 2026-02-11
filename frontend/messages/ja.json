@@ -81,7 +81,16 @@
                      "aiExplanationEmpty":  "分析を実行すると説明が生成されます。",
                      "aiExplanationLocked":  "AIの説明はProプランで利用できます。",
                      "calendarLocked":  "カレンダーはProプランで利用できます。",
-                     "weeklySummaryLocked":  "週次サマリーはProプランで利用できます。"
+                     "weeklySummaryLocked":  "週次サマリーはProプランで利用できます。",
+                     "aiExplanationLoading":  "AIの説明を生成しています。",
+                     "aiExplanationError":  "AIの説明を生成できませんでした。",
+                     "aiWeeklyTitle":  "AI週次インサイト",
+                     "aiWeeklyButton":  "インサイト生成",
+                     "aiWeeklyLoading":  "生成中...",
+                     "aiWeeklyHint":  "パターン、次週目標、改善提案を生成します。",
+                     "aiWeeklyEmpty":  "今週の分析記録が必要です。",
+                     "aiWeeklyError":  "週次インサイトを生成できませんでした。",
+                     "recordsLocked":  "記録はProプランで利用できます。"
                  },
     "Auth":  {
                  "loginTitle":  "ログイン",
@@ -131,5 +140,12 @@
                   "role":  "役割",
                   "roleUser":  "ユーザー",
                   "roleAdmin":  "管理者"
-              }
+              },
+    "Checkout":  {
+                     "cancelTitle":  "お支払いが完了しませんでした",
+                     "cancelBody":  "決済が失敗したか、処理中にキャンセルされました。",
+                     "cancelNote":  "請求は発生していません。別の方法で再度お試しください。",
+                     "retryButton":  "再試行",
+                     "homeButton":  "ホームへ"
+                 }
 }

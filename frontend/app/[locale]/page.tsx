@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase/client";
 import { useLocale, useTranslations } from "next-intl";
 
 const RECORDS_KEY = "dra_records_v1";
-const POLAR_PRODUCT_ID = "de006367-bcb5-4fdf-9f94-529d9c8cfc69";
+const POLAR_PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
 
 type RiskLabelKey = "low" | "medium" | "high";
 
@@ -191,6 +191,12 @@ export default function Home() {
   const [score, setScore] = useState<number | null>(null);
   const [labelKey, setLabelKey] = useState<RiskLabelKey | null>(null);
   const [message, setMessage] = useState("");
+  const [aiText, setAiText] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [weeklyAiText, setWeeklyAiText] = useState("");
+  const [weeklyAiLoading, setWeeklyAiLoading] = useState(false);
+  const [weeklyAiError, setWeeklyAiError] = useState<string | null>(null);
   const [records, setRecords] = useState<DecisionRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
@@ -447,6 +453,8 @@ export default function Home() {
 
   const handleAnalyze = () => {
     setMessage("");
+    setAiError(null);
+    setWeeklyAiError(null);
 
     if (!price.trim() || !time.trim() || !people.trim()) {
       setMessage(t("messageMissing"));
@@ -477,25 +485,117 @@ export default function Home() {
     const computedLabelKey = riskLabelKey(computedScore);
 
     const now = new Date();
-    const record: DecisionRecord = {
-      id: crypto.randomUUID(),
-      date: formatLocalDate(now),
-      createdAt: now.getTime(),
-      menu: menu.trim(),
-      price: priceValue,
-      people: peopleValue,
-      timeMinutes: timeValue,
-      region,
-      riskScore: computedScore,
-      riskLabelKey: computedLabelKey
-    };
+    if (isPro) {
+      const record: DecisionRecord = {
+        id: crypto.randomUUID(),
+        date: formatLocalDate(now),
+        createdAt: now.getTime(),
+        menu: menu.trim(),
+        price: priceValue,
+        people: peopleValue,
+        timeMinutes: timeValue,
+        region,
+        riskScore: computedScore,
+        riskLabelKey: computedLabelKey
+      };
 
-    const nextRecords = [record, ...records];
-    localStorage.setItem(RECORDS_KEY, JSON.stringify(nextRecords));
-    setRecords(nextRecords);
-    setSelectedDate(record.date);
+      const nextRecords = [record, ...records];
+      localStorage.setItem(RECORDS_KEY, JSON.stringify(nextRecords));
+      setRecords(nextRecords);
+      setSelectedDate(record.date);
+    }
     setScore(computedScore);
     setLabelKey(computedLabelKey);
+
+    if (!isPro) {
+      setAiText("");
+      return;
+    }
+
+    supabase.auth.getSession().then(async ({ data }) => {
+      const token = data.session?.access_token;
+      if (!token) {
+        setAiError(t("aiExplanationError"));
+        return;
+      }
+      setAiLoading(true);
+      try {
+        const response = await fetch("/api/ai/explain", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            menu,
+            price: priceValue,
+            time: timeValue,
+            people: peopleValue,
+            region,
+            score: computedScore,
+            label: getRiskLabel(computedLabelKey),
+            locale
+          })
+        });
+        if (!response.ok) {
+          setAiError(t("aiExplanationError"));
+          setAiText("");
+          return;
+        }
+        const payload = (await response.json()) as { text?: string };
+        setAiText(payload.text ?? "");
+      } catch {
+        setAiError(t("aiExplanationError"));
+        setAiText("");
+      } finally {
+        setAiLoading(false);
+      }
+    });
+  };
+
+  const handleWeeklyAi = async () => {
+    setWeeklyAiError(null);
+    if (!isPro || weeklySummary.count === 0) {
+      setWeeklyAiText("");
+      return;
+    }
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setWeeklyAiError(t("aiWeeklyError"));
+      return;
+    }
+    setWeeklyAiLoading(true);
+    try {
+      const response = await fetch("/api/ai/weekly", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          locale,
+          region,
+          totalSpend: weeklySummary.totalSpend,
+          avgRisk: weeklySummary.avgRisk,
+          maxRisk: weeklySummary.maxRisk,
+          count: weeklySummary.count,
+          trend: timelineData.map((day) => day.avgRisk)
+        })
+      });
+      if (!response.ok) {
+        setWeeklyAiError(t("aiWeeklyError"));
+        setWeeklyAiText("");
+        return;
+      }
+      const payload = (await response.json()) as { text?: string };
+      setWeeklyAiText(payload.text ?? "");
+    } catch {
+      setWeeklyAiError(t("aiWeeklyError"));
+      setWeeklyAiText("");
+    } finally {
+      setWeeklyAiLoading(false);
+    }
   };
 
   return (
@@ -797,45 +897,6 @@ export default function Home() {
           </div>
         </section>
 
-        {isPro ? (
-          <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
-              <span className="text-xs text-slate-500">{t("last7Days")}</span>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs text-slate-500">{t("totalSpend")}</p>
-                <p className="text-lg font-semibold">
-                  {formatCurrency(weeklySummary.totalSpend, region, locale)}
-                </p>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs text-slate-500">{t("avgRisk")}</p>
-                <p className="text-lg font-semibold">{weeklySummary.avgRisk}</p>
-              </div>
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <p className="text-xs text-slate-500">{t("maxRisk")}</p>
-                <p className="text-lg font-semibold">{weeklySummary.maxRisk}</p>
-              </div>
-            </div>
-          </section>
-        ) : (
-          <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
-              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
-            </div>
-            <p className="text-sm text-slate-500">{t("weeklySummaryLocked")}</p>
-            <a
-              href={checkoutUrl}
-              className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
-            >
-              {t("upgradeToUnlock")}
-            </a>
-          </section>
-        )}
-
         <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6 text-sm text-slate-600">
           <div className="flex items-center justify-between">
             <span>{t("riskScore")}</span>
@@ -847,30 +908,6 @@ export default function Home() {
             {score === null || !labelKey ? t("noScore") : getRiskLabel(labelKey)}
           </p>
           <p>{t("riskFormula")}</p>
-        </section>
-
-        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">{t("aiExplanationTitle")}</h2>
-            {!planLoading && !isPro && (
-              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
-            )}
-          </div>
-          {isPro ? (
-            <p className="text-sm text-slate-600">
-              {aiExplanation || t("aiExplanationEmpty")}
-            </p>
-          ) : (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3">
-              <p className="text-sm text-slate-500">{t("aiExplanationLocked")}</p>
-              <a
-                href={checkoutUrl}
-                className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
-              >
-                {t("upgradeToUnlock")}
-              </a>
-            </div>
-          )}
         </section>
 
         <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
@@ -899,6 +936,100 @@ export default function Home() {
             </div>
           ) : (
             <p className="text-sm text-slate-500">{t("timelineEmpty")}</p>
+          )}
+        </section>
+
+        {isPro ? (
+          <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
+              <span className="text-xs text-slate-500">{t("last7Days")}</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("totalSpend")}</p>
+                <p className="text-lg font-semibold">
+                  {formatCurrency(weeklySummary.totalSpend, region, locale)}
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("avgRisk")}</p>
+                <p className="text-lg font-semibold">{weeklySummary.avgRisk}</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs text-slate-500">{t("maxRisk")}</p>
+                <p className="text-lg font-semibold">{weeklySummary.maxRisk}</p>
+              </div>
+            </div>
+            <div className="grid gap-2 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-xs font-semibold text-slate-500">
+                  {t("aiWeeklyTitle")}
+                </span>
+                <button
+                  type="button"
+                  className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+                  onClick={handleWeeklyAi}
+                  disabled={weeklyAiLoading || weeklySummary.count === 0}
+                >
+                  {weeklyAiLoading
+                    ? t("aiWeeklyLoading")
+                    : t("aiWeeklyButton")}
+                </button>
+              </div>
+              <p className="text-sm text-slate-600">
+                {weeklyAiText ||
+                  (weeklySummary.count === 0
+                    ? t("aiWeeklyEmpty")
+                    : t("aiWeeklyHint"))}
+              </p>
+              {weeklyAiError && (
+                <p className="text-xs text-rose-600">{weeklyAiError}</p>
+              )}
+            </div>
+          </section>
+        ) : (
+          <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("weeklySummary")}</h2>
+              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
+            </div>
+            <p className="text-sm text-slate-500">{t("weeklySummaryLocked")}</p>
+            <a
+              href={checkoutUrl}
+              className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            >
+              {t("upgradeToUnlock")}
+            </a>
+          </section>
+        )}
+
+        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-600">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">{t("aiExplanationTitle")}</h2>
+            {!planLoading && !isPro && (
+              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
+            )}
+          </div>
+          {isPro ? (
+            <p className="text-sm text-slate-600">
+              {aiLoading
+                ? t("aiExplanationLoading")
+                : aiText || aiExplanation || t("aiExplanationEmpty")}
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3">
+              <p className="text-sm text-slate-500">{t("aiExplanationLocked")}</p>
+              <a
+                href={checkoutUrl}
+                className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+              >
+                {t("upgradeToUnlock")}
+              </a>
+            </div>
+          )}
+          {aiError && (
+            <p className="text-xs text-rose-600">{aiError}</p>
           )}
         </section>
 
@@ -1026,78 +1157,94 @@ export default function Home() {
           </section>
         )}
 
-        <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">{t("records")}</h2>
-            <span className="text-xs text-slate-500">
-              {t("recordsCount", { count: filteredRecords.length })}
-            </span>
-          </div>
-
-          {sortedDates.length === 0 ? (
-            <p className="text-sm text-slate-500">{t("noRecords")}</p>
-          ) : (
-            <div className="grid gap-3">
-              <div className="flex flex-wrap gap-2">
-                {sortedDates.map((date) => (
-                  <button
-                    key={date}
-                    type="button"
-                    className={`rounded-full border px-3 py-1 text-xs transition ${
-                      selectedDate === date
-                        ? "border-slate-900 bg-slate-900 text-white"
-                        : "border-slate-200 text-slate-600 hover:border-slate-400"
-                    }`}
-                    onClick={() => setSelectedDate(date)}
-                  >
-                    {date}
-                  </button>
-                ))}
-              </div>
-
-              {selectedDate && (
-                <div className="grid gap-2">
-                  <h3 className="text-sm font-semibold text-slate-700">
-                    {t("recordsForDate", { date: selectedDate })}
-                  </h3>
-                  <div className="grid gap-2">
-                    {selectedRecords.map((record) => (
-                      <div
-                        key={record.id}
-                        className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
-                      >
-                        <div className="flex flex-col">
-                          <span className="font-medium text-slate-800">
-                            {record.menu.trim().length > 0
-                              ? record.menu
-                              : t("noMenu")}
-                          </span>
-                          <span className="text-xs text-slate-500">
-                            {t("recordMeta", {
-                              price: formatCurrency(
-                                record.price,
-                                record.region,
-                                locale
-                              ),
-                              time: record.timeMinutes,
-                              people: record.people
-                            })}
-                          </span>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-slate-500">{t("risk")}</p>
-                          <p className="font-semibold text-slate-900">
-                            {getRiskLabel(record.riskLabelKey)}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+        {isPro ? (
+          <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("records")}</h2>
+              <span className="text-xs text-slate-500">
+                {t("recordsCount", { count: filteredRecords.length })}
+              </span>
             </div>
-          )}
-        </section>
+
+            {sortedDates.length === 0 ? (
+              <p className="text-sm text-slate-500">{t("noRecords")}</p>
+            ) : (
+              <div className="grid gap-3">
+                <div className="flex flex-wrap gap-2">
+                  {sortedDates.map((date) => (
+                    <button
+                      key={date}
+                      type="button"
+                      className={`rounded-full border px-3 py-1 text-xs transition ${
+                        selectedDate === date
+                          ? "border-slate-900 bg-slate-900 text-white"
+                          : "border-slate-200 text-slate-600 hover:border-slate-400"
+                      }`}
+                      onClick={() => setSelectedDate(date)}
+                    >
+                      {date}
+                    </button>
+                  ))}
+                </div>
+
+                {selectedDate && (
+                  <div className="grid gap-2">
+                    <h3 className="text-sm font-semibold text-slate-700">
+                      {t("recordsForDate", { date: selectedDate })}
+                    </h3>
+                    <div className="grid gap-2">
+                      {selectedRecords.map((record) => (
+                        <div
+                          key={record.id}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium text-slate-800">
+                              {record.menu.trim().length > 0
+                                ? record.menu
+                                : t("noMenu")}
+                            </span>
+                            <span className="text-xs text-slate-500">
+                              {t("recordMeta", {
+                                price: formatCurrency(
+                                  record.price,
+                                  record.region,
+                                  locale
+                                ),
+                                time: record.timeMinutes,
+                                people: record.people
+                              })}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs text-slate-500">{t("risk")}</p>
+                            <p className="font-semibold text-slate-900">
+                              {getRiskLabel(record.riskLabelKey)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </section>
+        ) : (
+          <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold">{t("records")}</h2>
+              <span className="text-xs font-semibold text-[#1152d4]">PRO</span>
+            </div>
+            <p className="text-sm text-slate-500">{t("recordsLocked")}</p>
+            <a
+              href={checkoutUrl}
+              className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            >
+              {t("upgradeToUnlock")}
+            </a>
+          </section>
+        )}
 
         <div className="h-24" />
       </main>
