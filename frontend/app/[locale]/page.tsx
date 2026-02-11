@@ -1278,26 +1278,6 @@ export default function Home() {
                 )}
               </div>
             )}
-            <div className="mt-2 grid gap-2 sm:grid-cols-3">
-              <a
-                className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
-                href="./terms"
-              >
-                {t("terms")}
-              </a>
-              <a
-                className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
-                href="./refund"
-              >
-                {t("refund")}
-              </a>
-              <a
-                className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
-                href="./privacy"
-              >
-                {t("privacy")}
-              </a>
-            </div>
           </section>
         ) : (
           <section className="grid gap-3 rounded-2xl border border-dashed border-slate-200 bg-white/70 p-6">
@@ -1312,28 +1292,34 @@ export default function Home() {
             >
               {t("upgradeToUnlock")}
             </a>
-            <div className="mt-1 grid gap-2 sm:grid-cols-3">
-              <a
-                className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
-                href="./terms"
-              >
-                {t("terms")}
-              </a>
-              <a
-                className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
-                href="./refund"
-              >
-                {t("refund")}
-              </a>
-              <a
-                className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
-                href="./privacy"
-              >
-                {t("privacy")}
-              </a>
-            </div>
           </section>
         )}
+
+        <section className="grid gap-2 rounded-xl border border-[#1152d4]/10 bg-white/70 p-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#1152d4]/80">
+            Legal
+          </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <a
+              className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
+              href="./terms"
+            >
+              {t("terms")}
+            </a>
+            <a
+              className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
+              href="./refund"
+            >
+              {t("refund")}
+            </a>
+            <a
+              className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
+              href="./privacy"
+            >
+              {t("privacy")}
+            </a>
+          </div>
+        </section>
 
         <div className="h-24" />
       </main>
