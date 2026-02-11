@@ -4,9 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useLocale, useTranslations } from "next-intl";
 
-const TRIAL_KEY = "dra_trial_count_v1";
 const RECORDS_KEY = "dra_records_v1";
-const MAX_TRIALS = 3;
 
 type RiskLabelKey = "low" | "medium" | "high";
 
@@ -188,7 +186,6 @@ export default function Home() {
   const [score, setScore] = useState<number | null>(null);
   const [labelKey, setLabelKey] = useState<RiskLabelKey | null>(null);
   const [message, setMessage] = useState("");
-  const [trialCount, setTrialCount] = useState(0);
   const [records, setRecords] = useState<DecisionRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
@@ -206,12 +203,6 @@ export default function Home() {
       active = false;
       data.subscription.unsubscribe();
     };
-  }, []);
-
-  useEffect(() => {
-    const stored = localStorage.getItem(TRIAL_KEY);
-    const parsed = stored ? Number.parseInt(stored, 10) : 0;
-    setTrialCount(Number.isNaN(parsed) ? 0 : parsed);
   }, []);
 
   useEffect(() => {
@@ -237,11 +228,6 @@ export default function Home() {
   useEffect(() => {
     setSelectedDate(null);
   }, [region]);
-
-  const remainingTrials = useMemo(
-    () => Math.max(0, MAX_TRIALS - trialCount),
-    [trialCount]
-  );
 
   const filteredRecords = useMemo(() => {
     return records.filter((record) => (record.region ?? "KR") === region);
@@ -390,15 +376,6 @@ export default function Home() {
       setMessage(t("messageMissing"));
       return;
     }
-
-    if (trialCount >= MAX_TRIALS) {
-      setMessage(t("messageTrials"));
-      return;
-    }
-
-    const nextCount = trialCount + 1;
-    localStorage.setItem(TRIAL_KEY, String(nextCount));
-    setTrialCount(nextCount);
 
     const priceValue = Number.parseInt(price, 10);
     const timeValue = Number.parseInt(time, 10);
@@ -660,9 +637,6 @@ export default function Home() {
               >
                 {t("analyze")}
               </button>
-              <span className="text-xs text-[#1152d4]/60">
-                {t("trialsRemaining", { count: remainingTrials })}
-              </span>
             </div>
           </form>
 
