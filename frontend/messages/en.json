@@ -103,9 +103,22 @@
     "nicknameLabel": "Nickname",
     "namePlaceholder": "e.g. Alex",
     "nicknamePlaceholder": "e.g. Lex",
+    "roleLabel": "Role",
     "saveButton": "Save profile",
     "saveSuccess": "Profile saved.",
     "notSignedIn": "You need to log in to view your profile.",
-    "goToLogin": "Go to login"
+    "goToLogin": "Go to login",
+    "adminLink": "Open admin console"
+  },
+  "Admin": {
+    "title": "Admin Console",
+    "subtitle": "Manage users and assign roles.",
+    "accessDenied": "Admin access required.",
+    "email": "Email",
+    "name": "Name",
+    "nickname": "Nickname",
+    "role": "Role",
+    "roleUser": "User",
+    "roleAdmin": "Admin"
   }
 }

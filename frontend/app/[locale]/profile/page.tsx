@@ -11,9 +11,11 @@ export default function ProfilePage() {
   const t = useTranslations("Profile");
   const tCommon = useTranslations("Common");
   const locale = useLocale();
+  const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
+  const [role, setRole] = useState<"user" | "admin" | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
@@ -22,17 +24,37 @@ export default function ProfilePage() {
   useEffect(() => {
     let active = true;
 
-    supabase.auth.getUser().then(({ data, error }) => {
+    supabase.auth.getUser().then(async ({ data, error }) => {
       if (!active) return;
       if (error || !data.user) {
         setEmail(null);
+        setRole(null);
         setLoading(false);
         return;
       }
 
-      setEmail(data.user.email ?? null);
-      setName((data.user.user_metadata?.name as string) ?? "");
-      setNickname((data.user.user_metadata?.nickname as string) ?? "");
+      setUserId(data.user.id);
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("email, name, nickname, role")
+        .eq("id", data.user.id)
+        .single();
+
+      if (!active) return;
+
+      if (profileError) {
+        setEmail(data.user.email ?? null);
+        setName("");
+        setNickname("");
+        setRole(null);
+        setLoading(false);
+        return;
+      }
+
+      setEmail(profile.email ?? data.user.email ?? null);
+      setName(profile.name ?? "");
+      setNickname(profile.nickname ?? "");
+      setRole(profile.role ?? null);
       setLoading(false);
     });
 
@@ -46,12 +68,19 @@ export default function ProfilePage() {
     setSaving(true);
     setNotice(null);
 
-    const { error } = await supabase.auth.updateUser({
-      data: {
+    if (!userId) {
+      setNotice({ type: "error", message: t("notSignedIn") });
+      setSaving(false);
+      return;
+    }
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({
         name: name.trim(),
         nickname: nickname.trim()
-      }
-    });
+      })
+      .eq("id", userId);
 
     if (error) {
       setNotice({ type: "error", message: error.message });
@@ -214,6 +243,13 @@ export default function ProfilePage() {
                 />
               </label>
 
+              <div className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
+                <span>{t("roleLabel")}</span>
+                <div className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm text-[#1e293b]/70">
+                  {role ?? "user"}
+                </div>
+              </div>
+
               <button
                 type="submit"
                 className="rounded-xl bg-[#1152d4] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1152d4]/20 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#1152d4]/60"
@@ -233,6 +269,15 @@ export default function ProfilePage() {
               >
                 {notice.message}
               </p>
+            )}
+
+            {role === "admin" && (
+              <a
+                href="./admin"
+                className="mt-4 inline-flex rounded-lg border border-[#1152d4]/20 px-4 py-2 text-sm font-semibold text-[#1152d4]"
+              >
+                {t("adminLink")}
+              </a>
             )}
           </section>
         )}
