@@ -72,6 +72,43 @@
 
 ---
 
+## Frontend (Next.js + Supabase)
+
+### 주요 기능
+- Supabase 인증: 로그인/회원가입
+- i18n: 한국어/영어/일본어 (기본 한국어)
+- 프로필 페이지: 이메일/이름/닉네임 관리
+- 관리자 콘솔: 사용자 목록 조회 및 역할(user/admin) 변경
+
+### Supabase 설정
+1) SQL 실행 (RLS + profiles + 트리거)
+```sql
+-- see docs/supabase-roles.sql
+```
+
+2) 환경 변수 (`frontend/.env.local`)
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+```
+
+3) 관리자 지정
+- Supabase 대시보드에서 `profiles.role = 'admin'`으로 변경
+
+---
+
+## Cloudflare Pages 배포
+
+### Build 설정
+- Build Command: `cd frontend && npm install && npm run pages:build`
+- Build Output Directory: `frontend/.vercel/output/static`
+
+### Compatibility Flags
+- Functions → `nodejs_compat` 추가 (Node.js 호환 경고 해결)
+
+---
+
 ## Backend Run (Spring Boot + PostgreSQL)
 
 ### 1) PostgreSQL 준비
