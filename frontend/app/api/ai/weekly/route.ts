@@ -41,11 +41,20 @@ const extractText = (json: Record<string, unknown>) => {
   const output = json.output;
   if (Array.isArray(output)) {
     for (const item of output) {
-      const content = (item as { content?: Array<{ type?: string; text?: string }> })
-        .content;
-      if (!Array.isArray(content)) continue;
-      for (const part of content) {
-        if (part?.type === "output_text" && part.text) {
+      const message = item as {
+        type?: string;
+        content?: Array<{ type?: string; text?: string }>;
+        text?: string;
+      };
+      if (typeof message.text === "string" && message.text.trim()) {
+        return message.text.trim();
+      }
+      if (!Array.isArray(message.content)) continue;
+      for (const part of message.content) {
+        if (
+          (part?.type === "output_text" || part?.type === "text") &&
+          part.text
+        ) {
           return part.text.trim();
         }
       }
@@ -131,7 +140,8 @@ Avoid medical/financial/legal advice.`;
     body: JSON.stringify({
       model: "gpt-5-mini",
       input: prompt,
-      max_output_tokens: 140
+      max_output_tokens: 140,
+      text: { format: { type: "text" } }
     })
   });
 

@@ -42,11 +42,20 @@ const extractText = (json: Record<string, unknown>) => {
   const output = json.output;
   if (Array.isArray(output)) {
     for (const item of output) {
-      const content = (item as { content?: Array<{ type?: string; text?: string }> })
-        .content;
-      if (!Array.isArray(content)) continue;
-      for (const part of content) {
-        if (part?.type === "output_text" && part.text) {
+      const message = item as {
+        type?: string;
+        content?: Array<{ type?: string; text?: string }>;
+        text?: string;
+      };
+      if (typeof message.text === "string" && message.text.trim()) {
+        return message.text.trim();
+      }
+      if (!Array.isArray(message.content)) continue;
+      for (const part of message.content) {
+        if (
+          (part?.type === "output_text" || part?.type === "text") &&
+          part.text
+        ) {
           return part.text.trim();
         }
       }
@@ -116,7 +125,7 @@ export const POST = async (request: NextRequest) => {
   const localeHint =
     locale.startsWith("ja") ? "Japanese" : locale.startsWith("en") ? "English" : "Korean";
 
-  const prompt = `You are a concise assistant. Write 2-3 sentences in ${localeHint} explaining the decision risk for a meal. Inputs: region=${region}, score=${score}, label=${label}, price_per_person=${perPerson.toFixed(
+  const prompt = `You are a helpful assistant. Write 3-5 sentences in ${localeHint} explaining the decision risk for a meal. Include a short rationale based on price/time/people and 1 gentle improvement suggestion. Inputs: region=${region}, score=${score}, label=${label}, price_per_person=${perPerson.toFixed(
     2
   )}, time_minutes=${time}, menu=${menu || "unspecified"}. Avoid medical/financial/legal advice.`;
 
@@ -129,7 +138,8 @@ export const POST = async (request: NextRequest) => {
     body: JSON.stringify({
       model: "gpt-5-mini",
       input: prompt,
-      max_output_tokens: 120
+      max_output_tokens: 120,
+      text: { format: { type: "text" } }
     })
   });
 
