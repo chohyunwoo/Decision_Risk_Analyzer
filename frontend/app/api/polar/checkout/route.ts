@@ -6,5 +6,10 @@ export const GET = Checkout({
   accessToken: process.env.POLAR_ACCESS_TOKEN,
   successUrl: process.env.POLAR_SUCCESS_URL,
   returnUrl: process.env.POLAR_RETURN_URL,
-  server: process.env.POLAR_SERVER
+  server:
+    process.env.POLAR_SERVER === "sandbox"
+      ? "sandbox"
+      : process.env.POLAR_SERVER === "production"
+        ? "production"
+        : undefined
 });
