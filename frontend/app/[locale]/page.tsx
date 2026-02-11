@@ -1304,19 +1304,19 @@ export default function Home() {
               className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
               href="./terms"
             >
-              {t("terms")}
+              {tCommon("terms")}
             </a>
             <a
               className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
               href="./refund"
             >
-              {t("refund")}
+              {tCommon("refund")}
             </a>
             <a
               className="rounded-lg border border-[#1152d4]/20 bg-[#1152d4]/5 px-3 py-2 text-center text-xs font-semibold text-[#1152d4]"
               href="./privacy"
             >
-              {t("privacy")}
+              {tCommon("privacy")}
             </a>
           </div>
         </section>

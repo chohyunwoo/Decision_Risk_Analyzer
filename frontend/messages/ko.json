@@ -12,6 +12,9 @@
                    "profile":  "프로필",
                    "explore":  "탐색",
                    "trends":  "트렌드",
+                   "terms":  "서비스 약관",
+                   "refund":  "환불 규정",
+                   "privacy":  "개인정보 처리방침",
                    "disclaimerTitle":  "디지털 서비스 안내",
                    "disclaimerBody":  "본 서비스는 의사결정을 돕는 디지털 소프트웨어입니다. 물리적 상품 판매 또는 오프라인 서비스는 제공하지 않습니다.",
                    "disclaimerNote":  "점수는 참고용이며 의료·금융·법률 자문이 아닙니다."
