@@ -90,7 +90,14 @@
                      "aiWeeklyHint":  "パターン、次週目標、改善提案を生成します。",
                      "aiWeeklyEmpty":  "今週の分析記録が必要です。",
                      "aiWeeklyError":  "週次インサイトを生成できませんでした。",
-                     "recordsLocked":  "記録はProプランで利用できます。"
+                     "recordsLocked":  "記録はProプランで利用できます。",
+                     "reportTitle":  "結果レポート",
+                     "reportBadge":  "レポート",
+                     "reportSummary":  "全体リスクは{label}（スコア{score}）です。",
+                     "reportInputs":  "入力内容",
+                     "reportInputLine":  "メニュー: {menu} · 価格: {price} · 時間: {time} · 人数: {people}",
+                     "reportRegion":  "地域",
+                     "reportTip":  "ヒント: メニューを具体化したり、価格や時間を調整するとリスクを下げられます。"
                  },
     "Auth":  {
                  "loginTitle":  "ログイン",

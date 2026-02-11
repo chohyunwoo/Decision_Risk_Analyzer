@@ -90,7 +90,14 @@
                      "aiWeeklyHint":  "패턴, 다음 주 목표, 개선 제안을 생성합니다.",
                      "aiWeeklyEmpty":  "이번 주 분석 기록이 있어야 생성됩니다.",
                      "aiWeeklyError":  "주간 인사이트를 생성하지 못했습니다.",
-                     "recordsLocked":  "기록은 Pro 플랜에서 사용할 수 있습니다."
+                     "recordsLocked":  "기록은 Pro 플랜에서 사용할 수 있습니다.",
+                     "reportTitle":  "결과 보고서",
+                     "reportBadge":  "보고서",
+                     "reportSummary":  "전체 리스크는 {label} (점수 {score})입니다.",
+                     "reportInputs":  "입력값",
+                     "reportInputLine":  "메뉴: {menu} · 가격: {price} · 시간: {time} · 인원: {people}",
+                     "reportRegion":  "지역",
+                     "reportTip":  "팁: 메뉴를 구체화하거나 가격/시간을 조정하면 리스크를 낮출 수 있습니다."
                  },
     "Auth":  {
                  "loginTitle":  "로그인",
