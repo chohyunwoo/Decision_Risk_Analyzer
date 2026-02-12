@@ -130,6 +130,11 @@ export default function ProfilePage() {
   const handleManageSubscription = async () => {
     setManageLoading(true);
     setNotice(null);
+    if (plan !== "pro") {
+      setNotice({ type: "error", message: t("manageSubscriptionNoPlan") });
+      setManageLoading(false);
+      return;
+    }
     const { data } = await supabase.auth.getSession();
     const token = data.session?.access_token;
     if (!token) {
@@ -334,17 +339,19 @@ export default function ProfilePage() {
             </form>
 
             <section className="mt-8 grid gap-4">
-              {plan === "pro" && (
-                <div className="rounded-xl border border-[#1152d4]/10 bg-white p-4">
-                  <h2 className="text-sm font-semibold text-[#0f172a]">
-                    {t("subscriptionTitle")}
-                  </h2>
-                  <p className="mt-1 text-xs text-[#1e293b]/60">
-                    {t("subscriptionActive")}
-                  </p>
+              <div className="rounded-xl border border-[#1152d4]/10 bg-white p-4">
+                <h2 className="text-sm font-semibold text-[#0f172a]">
+                  {t("subscriptionTitle")}
+                </h2>
+                <p className="mt-1 text-xs text-[#1e293b]/60">
+                  {plan === "pro"
+                    ? t("subscriptionActive")
+                    : t("subscriptionInactive")}
+                </p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    className="mt-3 rounded-lg border border-[#1152d4]/20 px-3 py-2 text-xs font-semibold text-[#1152d4]"
+                    className="rounded-lg border border-[#1152d4]/20 px-3 py-2 text-xs font-semibold text-[#1152d4]"
                     onClick={handleManageSubscription}
                     disabled={manageLoading}
                   >
@@ -352,8 +359,16 @@ export default function ProfilePage() {
                       ? tCommon("processing")
                       : t("manageSubscriptionButton")}
                   </button>
+                  {plan !== "pro" && (
+                    <Link
+                      href="/"
+                      className="rounded-lg bg-[#1152d4] px-3 py-2 text-xs font-semibold text-white"
+                    >
+                      {t("upgradeToProButton")}
+                    </Link>
+                  )}
                 </div>
-              )}
+              </div>
               <div className="rounded-xl border border-[#1152d4]/10 bg-white p-4">
                 <h2 className="text-sm font-semibold text-[#0f172a]">
                   {t("resetPasswordTitle")}

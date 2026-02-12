@@ -190,7 +190,10 @@
     "subscriptionTitle": "\u8cfc\u8aad",
     "subscriptionActive": "Pro\u306e\u8cfc\u8aad\u304c\u6709\u52b9\u3067\u3059\u3002",
     "manageSubscriptionButton": "\u8cfc\u8aad\u7ba1\u7406",
-    "manageSubscriptionError": "\u8cfc\u8aad\u30dd\u30fc\u30bf\u30eb\u3092\u958b\u3051\u307e\u305b\u3093\u3002"
+    "manageSubscriptionError": "\u8cfc\u8aad\u30dd\u30fc\u30bf\u30eb\u3092\u958b\u3051\u307e\u305b\u3093\u3002",
+    "subscriptionInactive": "Pro\u306e\u8cfc\u8aad\u304c\u6709\u52b9\u3067\u306f\u3042\u308a\u307e\u305b\u3093\u3002",
+    "upgradeToProButton": "Pro\u306b\u30a2\u30c3\u30d7\u30b0\u30ec\u30fc\u30c9",
+    "manageSubscriptionNoPlan": "\u6709\u52b9\u306aPro\u8cfc\u8aad\u304c\u3042\u308a\u307e\u305b\u3093\u3002"
   },
   "Admin": {
     "title": "\u7ba1\u7406\u30b3\u30f3\u30bd\u30fc\u30eb",

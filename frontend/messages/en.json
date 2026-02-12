@@ -189,7 +189,10 @@
     "subscriptionTitle": "Subscription",
     "subscriptionActive": "Your Pro subscription is active.",
     "manageSubscriptionButton": "Manage subscription",
-    "manageSubscriptionError": "Unable to open the subscription portal."
+    "manageSubscriptionError": "Unable to open the subscription portal.",
+    "subscriptionInactive": "You do not have an active Pro subscription.",
+    "upgradeToProButton": "Upgrade to Pro",
+    "manageSubscriptionNoPlan": "No active Pro subscription found."
   },
   "Checkout": {
     "cancelTitle": "Payment was not completed",

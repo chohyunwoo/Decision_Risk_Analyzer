@@ -170,6 +170,47 @@ export const POST = async (request: NextRequest) => {
     );
   }
 
+  try {
+    await fetchPolar(`/customers/${encodeURIComponent(customerId)}`);
+  } catch {
+    let refreshedId: string | null = null;
+    try {
+      const byExternal = await fetchPolar(
+        `/customers?external_id=${encodeURIComponent(userId)}`,
+      );
+      const externalMatch = (byExternal.items ?? [])[0] as
+        | { id?: string | null }
+        | undefined;
+      refreshedId = externalMatch?.id ?? null;
+    } catch {
+      refreshedId = null;
+    }
+    if (!refreshedId && email) {
+      try {
+        const customerResponse = await fetchPolar(
+          `/customers?email=${encodeURIComponent(email)}`,
+        );
+        const customer = (customerResponse.items ?? [])[0] as
+          | { id?: string | null }
+          | undefined;
+        refreshedId = customer?.id ?? null;
+      } catch {
+        refreshedId = null;
+      }
+    }
+    if (!refreshedId) {
+      return NextResponse.json(
+        { error: "Customer not found." },
+        { status: 404 }
+      );
+    }
+    customerId = refreshedId;
+    await supabaseAdmin
+      .from("profiles")
+      .update({ polar_customer_id: customerId })
+      .eq("id", userId);
+  }
+
   const returnUrl =
     process.env.NEXT_PUBLIC_SITE_URL ??
     process.env.POLAR_RETURN_URL ??

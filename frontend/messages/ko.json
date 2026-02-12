@@ -190,7 +190,10 @@
     "subscriptionTitle": "\uad6c\ub3c5",
     "subscriptionActive": "Pro \uad6c\ub3c5\uc774 \ud65c\uc131\ud654 \uc0c1\ud0dc\uc785\ub2c8\ub2e4.",
     "manageSubscriptionButton": "\uad6c\ub3c5 \uad00\ub9ac",
-    "manageSubscriptionError": "\uad6c\ub3c5 \ud3ec\ud138\uc744 \uc5f4 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4."
+    "manageSubscriptionError": "\uad6c\ub3c5 \ud3ec\ud138\uc744 \uc5f4 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4.",
+    "subscriptionInactive": "Pro \uad6c\ub3c5\uc774 \ud65c\uc131\ud654\ub418\uc5b4 \uc788\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.",
+    "upgradeToProButton": "Pro\ub85c \uc5c5\uadf8\ub808\uc774\ub4dc",
+    "manageSubscriptionNoPlan": "\ud65c\uc131\ud654\ub41c Pro \uad6c\ub3c5\uc774 \uc5c6\uc2b5\ub2c8\ub2e4."
   },
   "Admin": {
     "title": "\uad00\ub9ac\uc790 \ucf58\uc194",
