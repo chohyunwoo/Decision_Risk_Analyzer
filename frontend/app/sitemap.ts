@@ -15,13 +15,13 @@ function buildLocalePath(locale: string, route: string) {
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  const entries = LOCALES.flatMap((locale) =>
+  const entries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) =>
     ROUTES.map((route) => ({
       url: `${SITE_URL}${buildLocalePath(locale, route)}`,
       lastModified: now,
-      changeFrequency: "weekly",
+      changeFrequency: "weekly" as const,
       priority: route === "/" ? 1 : 0.6
-    })),
+    }))
   );
 
   return entries;
