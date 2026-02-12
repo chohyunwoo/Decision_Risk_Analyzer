@@ -85,8 +85,6 @@
 ```bash
 NEXT_PUBLIC_SITE_URL=https://riskly.store
 NEXT_PUBLIC_OG_IMAGE=https://your-domain.com/og.png
-NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your_google_verification_code
-NEXT_PUBLIC_NAVER_SITE_VERIFICATION=your_naver_verification_code
 ```
 
 2) 대표 도메인
@@ -95,7 +93,6 @@ NEXT_PUBLIC_NAVER_SITE_VERIFICATION=your_naver_verification_code
 
 2) 검색엔진 등록
 - Google Search Console에 사이트 등록 후 `sitemap.xml` 제출
-- Naver Search Advisor에 사이트 등록 후 `sitemap.xml` 제출
 
 3) 자동 생성 경로
 - `https://your-domain.com/robots.txt`
@@ -117,6 +114,15 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 3) 관리자 지정
 - Supabase 대시보드에서 `profiles.role = 'admin'`으로 변경
+
+### Google 로그인 (Supabase Auth)
+1) Google Cloud에서 OAuth 클라이언트 생성 (Web)
+2) 승인된 자바스크립트 원본에 사이트 도메인 추가
+3) 승인된 리디렉션 URI에 Supabase 콜백 URL 추가  
+   예: `https://<project-ref>.supabase.co/auth/v1/callback`
+4) Supabase 대시보드 → Authentication → Providers → Google
+   - Client ID / Client Secret 입력 후 활성화
+5) Supabase URL Configuration에서 Site URL 및 Redirect URLs 설정
 
 ---
 

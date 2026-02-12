@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase/client";
 
 type AdminUser = {
@@ -78,14 +79,14 @@ export default function AdminPage() {
     <div className="min-h-screen bg-[#f6f6f8] text-[#1e293b]">
       <nav className="sticky top-0 z-50 border-b border-[#1152d4]/10 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-          <div className="flex flex-col">
+          <Link href="/" className="flex flex-col">
             <span className="text-lg font-extrabold leading-none text-[#1152d4]">
               DRA
             </span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-[#1e293b]/60">
               Risk Analyzer
             </span>
-          </div>
+          </Link>
         </div>
       </nav>
 

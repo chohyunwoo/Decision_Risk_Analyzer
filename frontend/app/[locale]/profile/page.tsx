@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase/client";
 
 type Notice = { type: "error" | "success"; message: string } | null;
 
 export default function ProfilePage() {
+  const router = useRouter();
   const t = useTranslations("Profile");
   const tCommon = useTranslations("Common");
   const [userId, setUserId] = useState<string | null>(null);
@@ -96,28 +98,39 @@ export default function ProfilePage() {
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error(error);
+      setAuthLoading(false);
+      return;
     }
+    setUserId(null);
+    setEmail(null);
+    setName("");
+    setNickname("");
+    setRole(null);
+    setLoading(false);
     setAuthLoading(false);
+    router.replace("/");
   };
 
   return (
     <div className="min-h-screen bg-[#f6f6f8] text-[#1e293b]">
       <nav className="sticky top-0 z-50 border-b border-[#1152d4]/10 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-          <div className="flex flex-col">
+          <Link href="/" className="flex flex-col">
             <span className="text-lg font-extrabold leading-none text-[#1152d4]">
               DRA
             </span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-[#1e293b]/60">
               Risk Analyzer
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-semibold text-[#1e293b]/60">
               {loading
                 ? tCommon("processing")
                 : email
-                ? tCommon("loggedInAs", { email })
+                ? tCommon("loggedInAs", {
+                    name: nickname?.trim() || name?.trim() || email
+                  })
                 : tCommon("loggedOut")}
             </span>
             {!loading && !email ? (

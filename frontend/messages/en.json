@@ -7,7 +7,7 @@
     "logout": "Log out",
     "language": "Language",
     "processing": "Processing...",
-    "loggedInAs": "Logged in: {email}",
+    "loggedInAs": "Logged in: {name}",
     "loggedOut": "Not signed in.",
     "profile": "Profile",
     "explore": "Explore",
@@ -76,7 +76,7 @@
     "reportBadge": "Report",
     "reportSummary": "Overall risk is {label} (score {score}).",
     "reportInputs": "Inputs",
-    "reportInputLine": "Menu: {menu} 쨌 Price: {price} 쨌 Time: {time} 쨌 People: {people}",
+    "reportInputLine": "Menu: {menu} \uca0c Price: {price} \uca0c Time: {time} \uca0c People: {people}",
     "reportRegion": "Region",
     "reportTip": "Tip: refine the menu or adjust price/time to lower risk.",
     "riskTimeline": "Risk timeline",
@@ -130,7 +130,11 @@
     "errorMissingEmailPassword": "Please enter email and password.",
     "errorPasswordMismatch": "Passwords do not match.",
     "loginWithGoogle": "Continue with Google",
-    "signupWithGoogle": "Sign up with Google"
+    "signupWithGoogle": "Sign up with Google",
+    "nicknameLabel": "Nickname",
+    "nicknamePlaceholder": "e.g. Lex",
+    "errorMissingNickname": "Please enter a nickname.",
+    "passwordPlaceholder": "e.g. 10+ characters"
   },
   "Profile": {
     "title": "Profile",

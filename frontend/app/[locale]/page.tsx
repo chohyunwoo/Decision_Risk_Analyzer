@@ -198,6 +198,7 @@ export default function Home() {
   const [people, setPeople] = useState("1");
   const [authEmail, setAuthEmail] = useState<string | null>(null);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
   const [plan, setPlan] = useState<"free" | "pro">("free");
   const [planLoading, setPlanLoading] = useState(true);
@@ -218,11 +219,12 @@ export default function Home() {
 
   useEffect(() => {
     let active = true;
-    const loadPlan = async (userId: string | null | undefined) => {
+    const loadProfile = async (userId: string | null | undefined) => {
       if (!userId) {
         setPlan("free");
         setPlanLoading(false);
         setPlanError(null);
+        setDisplayName(null);
         return;
       }
       const { data: sessionData } = await supabase.auth.getSession();
@@ -235,16 +237,19 @@ export default function Home() {
       }
       const { data, error } = await supabase
         .from("profiles")
-        .select("plan")
+        .select("plan, name, nickname")
         .eq("id", userId)
         .single();
       if (!active) return;
       if (error) {
         setPlan("free");
         setPlanError(error.message);
+        setDisplayName(null);
       } else {
         setPlan(data?.plan === "pro" ? "pro" : "free");
         setPlanError(null);
+        const candidate = data?.nickname?.trim() || data?.name?.trim() || null;
+        setDisplayName(candidate);
       }
       setPlanLoading(false);
     };
@@ -253,12 +258,12 @@ export default function Home() {
       if (!active) return;
       setAuthEmail(data.session?.user?.email ?? null);
       setAuthUserId(data.session?.user?.id ?? null);
-      loadPlan(data.session?.user?.id ?? null);
+      loadProfile(data.session?.user?.id ?? null);
     });
     const { data } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthEmail(session?.user?.email ?? null);
       setAuthUserId(session?.user?.id ?? null);
-      loadPlan(session?.user?.id ?? null);
+      loadProfile(session?.user?.id ?? null);
     });
     return () => {
       active = false;
@@ -636,14 +641,14 @@ export default function Home() {
     <div className="min-h-screen bg-[#f6f6f8] text-[#1e293b]">
       <nav className="sticky top-0 z-50 border-b border-[#1152d4]/10 bg-white/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-md items-center justify-between px-4 py-3">
-          <div className="flex flex-col">
+          <Link href="/" className="flex flex-col">
             <span className="text-lg font-extrabold leading-none text-[#1152d4]">
               DRA
             </span>
             <span className="text-[10px] font-medium uppercase tracking-wider text-[#1e293b]/60">
               Risk Analyzer
             </span>
-          </div>
+          </Link>
           <div className="flex items-center gap-3">
             <div className="flex rounded-lg bg-[#1152d4]/5 p-1 text-[10px] font-semibold">
               {[
@@ -670,7 +675,9 @@ export default function Home() {
             </div>
             <span className="text-[10px] font-semibold text-[#1e293b]/60">
               {authEmail
-                ? tCommon("loggedInAs", { email: authEmail })
+                ? tCommon("loggedInAs", {
+                    name: displayName ?? authEmail
+                  })
                 : tCommon("loggedOut")}
             </span>
             <span className="text-[10px] font-semibold text-[#1e293b]/60">

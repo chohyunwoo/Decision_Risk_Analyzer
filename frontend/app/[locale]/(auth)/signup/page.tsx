@@ -18,6 +18,7 @@ export default function SignupPage() {
   const t = useTranslations("Auth");
   const tCommon = useTranslations("Common");
   const [email, setEmail] = useState("");
+  const [nickname, setNickname] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [state, setState] = useState<FormState>({
@@ -36,6 +37,13 @@ export default function SignupPage() {
       });
       return;
     }
+    if (!nickname.trim()) {
+      setState({
+        loading: false,
+        notice: { type: "error", message: t("errorMissingNickname") }
+      });
+      return;
+    }
 
     if (password !== confirmPassword) {
       setState({
@@ -48,7 +56,12 @@ export default function SignupPage() {
     setState({ loading: true, notice: emptyNotice });
     const { data, error } = await supabase.auth.signUp({
       email,
-      password
+      password,
+      options: {
+        data: {
+          nickname: nickname.trim()
+        }
+      }
     });
 
     if (error) {
@@ -117,13 +130,25 @@ export default function SignupPage() {
         </label>
 
         <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
+          {t("nicknameLabel")}
+          <input
+            type="text"
+            className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
+            value={nickname}
+            onChange={(event) => setNickname(event.target.value)}
+            placeholder={t("nicknamePlaceholder")}
+            autoComplete="nickname"
+          />
+        </label>
+
+        <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
           {t("password")}
           <input
             type="password"
             className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="????????"
+            placeholder={t("passwordPlaceholder")}
             autoComplete="new-password"
           />
         </label>
@@ -135,7 +160,7 @@ export default function SignupPage() {
             className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
-            placeholder="????????"
+            placeholder={t("passwordConfirmPlaceholder")}
             autoComplete="new-password"
           />
         </label>

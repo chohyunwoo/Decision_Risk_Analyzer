@@ -154,7 +154,7 @@ export default function LoginPage() {
             className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            placeholder="????????"
+            placeholder={t("passwordPlaceholder")}
             autoComplete="current-password"
           />
         </label>
