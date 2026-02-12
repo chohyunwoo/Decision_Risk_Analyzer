@@ -1,0 +1,32 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#2563EB"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="400" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FACC15"/>
+      <stop offset="1" stop-color="#F59E0B"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" rx="32" fill="url(#bg)"/>
+  <rect x="80" y="86" width="8" height="458" rx="4" fill="url(#accent)"/>
+  <text x="140" y="210" fill="#FFFFFF" font-family="Manrope, Arial, sans-serif" font-size="64" font-weight="800">
+    Riskly
+  </text>
+  <text x="140" y="280" fill="#E2E8F0" font-family="Manrope, Arial, sans-serif" font-size="28" font-weight="500">
+    Decision Risk Analyzer
+  </text>
+  <text x="140" y="360" fill="#E2E8F0" font-family="Manrope, Arial, sans-serif" font-size="24" font-weight="400">
+    Clear, data-driven guidance for everyday decisions.
+  </text>
+  <g opacity="0.18">
+    <circle cx="980" cy="180" r="120" fill="#FFFFFF"/>
+    <circle cx="1040" cy="430" r="180" fill="#FFFFFF"/>
+  </g>
+  <g>
+    <rect x="140" y="420" width="280" height="8" rx="4" fill="#93C5FD"/>
+    <rect x="140" y="448" width="220" height="8" rx="4" fill="#60A5FA"/>
+    <rect x="140" y="476" width="180" height="8" rx="4" fill="#3B82F6"/>
+  </g>
+</svg>

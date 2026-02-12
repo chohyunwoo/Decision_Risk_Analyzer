@@ -1,6 +1,6 @@
-export const LEGAL_INFO = {
-  serviceName: "Decision Risk Analyzer",
-  serviceUrl: "https://decision-risk-analyzer.pages.dev",
+﻿export const LEGAL_INFO = {
+  serviceName: "Riskly",
+  serviceUrl: "https://riskly.store",
   operatorName: "조현우",
   operatorCountry: "Republic of Korea",
   contactEmail: "gusdndlek12@naver.com",

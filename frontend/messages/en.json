@@ -1,6 +1,6 @@
 {
   "Common": {
-    "appName": "Decision Risk Analyzer",
+    "appName": "Riskly",
     "home": "Home",
     "login": "Log in",
     "signup": "Sign up",
@@ -20,8 +20,8 @@
     "disclaimerNote": "Scores are informational only and are not medical, financial, or legal advice."
   },
   "HomePage": {
-    "headline": "Check your decision risk before you act",
-    "subhead": "Enter a few details to estimate your current decision risk.",
+    "headline": "Riskly - the simplest way to quantify decision risk",
+    "subhead": "Enter price, time, and people to score your decision risk.",
     "regionLabel": "Region",
     "regionKR": "Korea (Seoul)",
     "regionUS": "United States",
@@ -38,25 +38,25 @@
     "peopleDefaultHint": "Default is 1 person.",
     "peopleDecrease": "Decrease people",
     "peopleIncrease": "Increase people",
-    "analyze": "Analyze",
-    "upgrade": "Upgrade plan",
+    "analyze": "Calculate risk score",
+    "upgrade": "Upgrade to PRO",
     "upgradeLoginNotice": "Log in to upgrade your plan.",
-    "upgradeToUnlock": "Upgrade to unlock",
+    "upgradeToUnlock": "Unlock with PRO",
     "aiExplanationTitle": "AI explanation",
     "aiExplanationBody": "Based on price per person {pricePerPerson} and time {time} min, the risk is {label}.",
     "aiExplanationEmpty": "Run an analysis to generate an explanation.",
     "aiExplanationLoading": "Generating AI explanation...",
-    "aiExplanationLocked": "AI explanations are available on the Pro plan.",
+    "aiExplanationLocked": "PRO: AI summaries included",
     "aiExplanationError": "Unable to generate an AI explanation right now.",
-    "weeklySummaryLocked": "Weekly summary is available on the Pro plan.",
-    "recordsLocked": "Records are available on the Pro plan.",
+    "weeklySummaryLocked": "PRO: Weekly summary included",
+    "recordsLocked": "PRO: Records included",
     "aiWeeklyTitle": "AI weekly insights",
     "aiWeeklyButton": "Generate insights",
     "aiWeeklyLoading": "Generating...",
     "aiWeeklyHint": "Generate insights for patterns, next-week goal, and improvement tip.",
     "aiWeeklyEmpty": "Run analyses this week to generate insights.",
     "aiWeeklyError": "Unable to generate weekly insights right now.",
-    "calendarLocked": "Calendar view is available on the Pro plan.",
+    "calendarLocked": "PRO: Calendar included",
     "trialsRemaining": "Free trials remaining: {count}",
     "recentMenus": "Recent menus",
     "useLastInput": "Use last input",
@@ -162,3 +162,7 @@
     "roleAdmin": "Admin"
   }
 }
+
+
+
+

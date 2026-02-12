@@ -1,6 +1,6 @@
 ﻿{
     "Common":  {
-                   "appName":  "Decision Risk Analyzer",
+                   "appName":  "Riskly",
                    "home":  "홈으로",
                    "login":  "로그인",
                    "signup":  "회원가입",
@@ -20,8 +20,8 @@
                    "disclaimerNote":  "점수는 참고용이며 의료·금융·법률 자문이 아닙니다."
                },
     "HomePage":  {
-                     "headline":  "결정 전에 리스크를 점검하세요",
-                     "subhead":  "간단한 입력으로 현재 상황의 리스크 점수를 계산합니다.",
+                     "headline":  "Riskly - 결정 리스크를 수치로 줄이는 가장 간단한 방법",
+                     "subhead":  "가격·시간·인원만 입력하면 의사결정 리스크를 점수로 보여줍니다.",
                      "regionLabel":  "지역",
                      "regionKR":  "한국 (서울)",
                      "regionUS":  "미국",
@@ -36,7 +36,7 @@
                      "peopleDefaultHint":  "기본값은 1명입니다.",
                      "peopleDecrease":  "인원 감소",
                      "peopleIncrease":  "인원 증가",
-                     "analyze":  "분석하기",
+                     "analyze":  "리스크 점수 계산하기",
                      "trialsRemaining":  "무료 체험 남은 횟수: {count}",
                      "recentMenus":  "최근 메뉴",
                      "useLastInput":  "마지막 입력 복사",
@@ -77,14 +77,14 @@
                      "risk":  "리스크",
                      "recordMeta":  "{price} | {time}분 | {people}명",
                      "noRecord":  "기록 없음",
-                     "upgrade":  "플랜 업그레이드",
-                     "upgradeToUnlock":  "업그레이드로 잠금 해제",
+                     "upgrade":  "PRO 업그레이드",
+                     "upgradeToUnlock":  "PRO로 잠금 해제",
                      "aiExplanationTitle":  "AI 설명",
                      "aiExplanationBody":  "1인당 {pricePerPerson}, {time}분 기준으로 리스크는 {label}입니다.",
                      "aiExplanationEmpty":  "분석을 실행하면 설명이 생성됩니다.",
-                     "aiExplanationLocked":  "AI 설명은 Pro 플랜에서 사용할 수 있습니다.",
-                     "calendarLocked":  "캘린더는 Pro 플랜에서 사용할 수 있습니다.",
-                     "weeklySummaryLocked":  "주간 요약은 Pro 플랜에서 사용할 수 있습니다.",
+                     "aiExplanationLocked":  "PRO: AI 요약 제공",
+                     "calendarLocked":  "PRO: 캘린더 제공",
+                     "weeklySummaryLocked":  "PRO: 주간 요약 제공",
                      "aiExplanationLoading":  "AI 설명을 생성 중입니다.",
                      "aiExplanationError":  "AI 설명을 생성하지 못했습니다.",
                      "aiWeeklyTitle":  "AI 주간 인사이트",
@@ -93,7 +93,7 @@
                      "aiWeeklyHint":  "패턴, 다음 주 목표, 개선 제안을 생성합니다.",
                      "aiWeeklyEmpty":  "이번 주 분석 기록이 있어야 생성됩니다.",
                      "aiWeeklyError":  "주간 인사이트를 생성하지 못했습니다.",
-                     "recordsLocked":  "기록은 Pro 플랜에서 사용할 수 있습니다.",
+                     "recordsLocked":  "PRO: 기록 제공",
                      "reportTitle":  "결과 보고서",
                      "reportBadge":  "보고서",
                      "reportSummary":  "전체 리스크는 {label} (점수 {score})입니다.",
@@ -162,3 +162,4 @@
                      "homeButton":  "홈으로"
                  }
 }
+

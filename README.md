@@ -80,6 +80,28 @@
 - 프로필 페이지: 이메일/이름/닉네임 관리
 - 관리자 콘솔: 사용자 목록 조회 및 역할(user/admin) 변경
 
+### SEO 설정
+1) 환경 변수 (`frontend/.env.local`)
+```bash
+NEXT_PUBLIC_SITE_URL=https://riskly.store
+NEXT_PUBLIC_OG_IMAGE=https://your-domain.com/og.png
+NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=your_google_verification_code
+NEXT_PUBLIC_NAVER_SITE_VERIFICATION=your_naver_verification_code
+```
+
+2) 대표 도메인
+- canonical/사이트맵 기준 도메인은 `https://riskly.store`로 고정
+- `decision-risk-analyzer.pages.dev`는 별도 도메인으로 운영하되, 가능하면 플랫폼 리다이렉트로 대표 도메인으로 통합 권장
+
+2) 검색엔진 등록
+- Google Search Console에 사이트 등록 후 `sitemap.xml` 제출
+- Naver Search Advisor에 사이트 등록 후 `sitemap.xml` 제출
+
+3) 자동 생성 경로
+- `https://your-domain.com/robots.txt`
+- `https://your-domain.com/sitemap.xml`
+ - 기본 OG 이미지: `https://your-domain.com/og.png` (SVG는 `/og.svg`)
+
 ### Supabase 설정
 1) SQL 실행 (RLS + profiles + 트리거)
 ```sql

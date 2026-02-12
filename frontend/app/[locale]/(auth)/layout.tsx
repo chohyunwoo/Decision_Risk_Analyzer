@@ -4,6 +4,13 @@ type AuthLayoutProps = {
   children: React.ReactNode;
 };
 
+export const metadata = {
+  robots: {
+    index: false,
+    follow: false
+  }
+};
+
 export default async function AuthLayout({ children }: AuthLayoutProps) {
   const tCommon = await getTranslations("Common");
 

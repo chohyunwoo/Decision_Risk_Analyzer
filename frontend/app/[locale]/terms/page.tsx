@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useLocale } from "next-intl";
 import { LEGAL_INFO } from "@/lib/legal";
@@ -38,7 +38,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
       {
         title: "1. 서비스 및 동의",
         items: [
-          "Decision Risk Analyzer는 의사결정 보조 점수 및 AI 요약을 제공하는 디지털 SaaS 서비스입니다.",
+          "Riskly는 의사결정 보조 점수 및 AI 요약을 제공하는 디지털 SaaS 서비스입니다.",
           "계정 생성 또는 서비스 이용 시 본 약관 및 관련 정책에 동의한 것으로 봅니다.",
           "본 서비스는 디지털 서비스이며 실물 상품을 판매하지 않습니다."
         ]
@@ -114,7 +114,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
       {
         title: "1. Service and Acceptance",
         items: [
-          "Decision Risk Analyzer is a digital SaaS service that provides decision-support scoring and optional AI summaries.",
+          "Riskly is a digital SaaS service that provides decision-support scoring and optional AI summaries.",
           "By creating an account or using the Service, you agree to these Terms and related policies.",
           "This is a digital service and does not sell physical goods."
         ]
@@ -190,7 +190,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
       {
         title: "1. サービスと同意",
         items: [
-          "Decision Risk Analyzer は、意思決定支援スコアと任意のAI要約を提供するデジタルSaaSサービスです。",
+          "Riskly は、意思決定支援スコアと任意のAI要約を提供するデジタルSaaSサービスです。",
           "アカウント作成またはサービス利用により、本規約および関連ポリシーに同意したものとみなします。",
           "本サービスはデジタルサービスであり、物理的商品の販売は行いません。"
         ]
