@@ -27,6 +27,7 @@ export default function LoginPage() {
     loading: false,
     notice: emptyNotice
   });
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -106,6 +107,21 @@ export default function LoginPage() {
     }));
   };
 
+  const handleGoogleLogin = async () => {
+    setOauthLoading(true);
+    setAuth((prev) => ({ ...prev, notice: emptyNotice }));
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google"
+    });
+    if (error) {
+      setAuth((prev) => ({
+        ...prev,
+        notice: { type: "error", message: error.message }
+      }));
+      setOauthLoading(false);
+    }
+  };
+
   return (
     <section className="rounded-xl border border-[#1152d4]/5 bg-white p-6 shadow-xl shadow-[#1152d4]/5">
       <header className="space-y-2">
@@ -151,6 +167,17 @@ export default function LoginPage() {
           {auth.loading ? tCommon("processing") : t("loginButton")}
         </button>
       </form>
+
+      <div className="mt-4 grid gap-2">
+        <button
+          type="button"
+          className="rounded-xl border border-[#1152d4]/20 px-4 py-3 text-sm font-semibold text-[#1152d4] transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:text-[#1152d4]/50"
+          onClick={handleGoogleLogin}
+          disabled={oauthLoading}
+        >
+          {oauthLoading ? tCommon("processing") : t("loginWithGoogle")}
+        </button>
+      </div>
 
       {auth.notice.message && (
         <p

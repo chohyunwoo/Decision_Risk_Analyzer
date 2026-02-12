@@ -128,7 +128,9 @@
     "signupSuccess": "登録とログインが完了しました。",
     "signupSuccessVerify": "登録完了。メール認証を行ってください。",
     "errorMissingEmailPassword": "メールとパスワードを入力してください。",
-    "errorPasswordMismatch": "パスワードが一致しません。"
+    "errorPasswordMismatch": "パスワードが一致しません。",
+    "loginWithGoogle": "Googleでログイン",
+    "signupWithGoogle": "Googleで登録"
   },
   "Profile": {
     "title": "プロフィール",

@@ -128,7 +128,9 @@
     "signupSuccess": "Signed up and logged in.",
     "signupSuccessVerify": "Sign-up complete! Please verify your email.",
     "errorMissingEmailPassword": "Please enter email and password.",
-    "errorPasswordMismatch": "Passwords do not match."
+    "errorPasswordMismatch": "Passwords do not match.",
+    "loginWithGoogle": "Continue with Google",
+    "signupWithGoogle": "Sign up with Google"
   },
   "Profile": {
     "title": "Profile",

@@ -24,6 +24,7 @@ export default function SignupPage() {
     loading: false,
     notice: emptyNotice
   });
+  const [oauthLoading, setOauthLoading] = useState(false);
 
   const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -73,6 +74,21 @@ export default function SignupPage() {
       loading: false,
       notice: { type: "success", message: t("signupSuccess") }
     });
+  };
+
+  const handleGoogleSignup = async () => {
+    setOauthLoading(true);
+    setState((prev) => ({ ...prev, notice: emptyNotice }));
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google"
+    });
+    if (error) {
+      setState((prev) => ({
+        ...prev,
+        notice: { type: "error", message: error.message }
+      }));
+      setOauthLoading(false);
+    }
   };
 
   return (
@@ -132,6 +148,17 @@ export default function SignupPage() {
           {state.loading ? tCommon("processing") : t("signupButton")}
         </button>
       </form>
+
+      <div className="mt-4 grid gap-2">
+        <button
+          type="button"
+          className="rounded-xl border border-[#1152d4]/20 px-4 py-3 text-sm font-semibold text-[#1152d4] transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:text-[#1152d4]/50"
+          onClick={handleGoogleSignup}
+          disabled={oauthLoading}
+        >
+          {oauthLoading ? tCommon("processing") : t("signupWithGoogle")}
+        </button>
+      </div>
 
       {state.notice.message && (
         <p

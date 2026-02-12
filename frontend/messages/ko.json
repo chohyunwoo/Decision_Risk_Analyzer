@@ -128,7 +128,9 @@
     "signupSuccess": "가입 및 로그인 완료.",
     "signupSuccessVerify": "가입 완료! 이메일 인증을 진행해주세요.",
     "errorMissingEmailPassword": "이메일과 비밀번호를 입력해주세요.",
-    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다."
+    "errorPasswordMismatch": "비밀번호가 일치하지 않습니다.",
+    "loginWithGoogle": "Google로 로그인",
+    "signupWithGoogle": "Google로 가입"
   },
   "Profile": {
     "title": "프로필",
