@@ -3,7 +3,7 @@
 import { useRouter } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase/client";
 
 const emptyNotice = { type: "idle", message: "" } as const;
@@ -18,6 +18,7 @@ type AuthState = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("Auth");
   const tCommon = useTranslations("Common");
   const [email, setEmail] = useState("");
@@ -122,6 +123,34 @@ export default function LoginPage() {
     }
   };
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setAuth((prev) => ({
+        ...prev,
+        notice: { type: "error", message: t("resetMissingEmail") }
+      }));
+      return;
+    }
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const localePrefix = locale === "ko" ? "" : `/${locale}`;
+    const redirectTo = `${siteUrl}${localePrefix}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo
+    });
+    if (error) {
+      setAuth((prev) => ({
+        ...prev,
+        notice: { type: "error", message: t("resetError") }
+      }));
+      return;
+    }
+    setAuth((prev) => ({
+      ...prev,
+      notice: { type: "success", message: t("resetLinkSent") }
+    }));
+  };
+
   return (
     <section className="rounded-xl border border-[#1152d4]/5 bg-white p-6 shadow-xl shadow-[#1152d4]/5">
       <header className="space-y-2">
@@ -167,6 +196,14 @@ export default function LoginPage() {
           {auth.loading ? tCommon("processing") : t("loginButton")}
         </button>
       </form>
+
+      <button
+        type="button"
+        className="mt-3 w-full rounded-xl border border-[#1152d4]/20 px-4 py-3 text-sm font-semibold text-[#1152d4] transition-all active:scale-[0.98]"
+        onClick={handleForgotPassword}
+      >
+        {t("forgotPassword")}
+      </button>
 
       <div className="mt-4 grid gap-2">
         <button
