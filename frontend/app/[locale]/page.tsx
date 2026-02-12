@@ -19,7 +19,7 @@ type DecisionRecord = {
   menu: string;
   price: number;
   people: number;
-  timeMinutes: number;
+  timeMinutes: number | null;
   region: Region;
   riskScore: number;
   riskLabelKey: RiskLabelKey;
@@ -126,13 +126,17 @@ function getTimeBandScore(timeMinutes: number) {
 
 function computeWasteRisk(
   totalPrice: number,
-  timeMinutes: number,
+  timeMinutes: number | null,
   people: number,
   baseOrderAmount: number
 ) {
   const safePeople = Math.max(1, people);
   const perPersonPrice = totalPrice / safePeople;
   const priceScore = getPriceBandScore(perPersonPrice, baseOrderAmount);
+  if (timeMinutes === null) {
+    return priceScore;
+  }
+
   const timeScore = getTimeBandScore(timeMinutes);
 
   return Math.round(
@@ -147,7 +151,7 @@ function computeUncertaintyRisk(menu: string) {
 function computeRiskScore(
   menu: string,
   priceValue: number,
-  timeValue: number,
+  timeValue: number | null,
   people: number,
   baseOrderAmount: number
 ) {
@@ -435,17 +439,23 @@ export default function Home() {
   const aiExplanation = useMemo(() => {
     if (!isPro || !labelKey || score === null) return "";
     const priceValue = Number.parseInt(price, 10);
-    const timeValue = Number.parseInt(time, 10);
+    const timeValue = time.trim().length > 0 ? Number.parseInt(time, 10) : null;
     const peopleValue = Number.parseInt(people, 10);
     if (
       Number.isNaN(priceValue) ||
-      Number.isNaN(timeValue) ||
       Number.isNaN(peopleValue) ||
       peopleValue <= 0
     ) {
       return "";
     }
     const perPerson = priceValue / peopleValue;
+    if (timeValue === null) {
+      return t("aiExplanationBodyNoTime", {
+        pricePerPerson: formatCurrency(perPerson, region, locale),
+        label: getRiskLabel(labelKey)
+      });
+    }
+
     return t("aiExplanationBody", {
       pricePerPerson: formatCurrency(perPerson, region, locale),
       time: timeValue,
@@ -472,21 +482,24 @@ export default function Home() {
       return;
     }
 
-    if (!price.trim() || !time.trim() || !people.trim()) {
+    if (!price.trim() || !people.trim()) {
       setMessage(t("messageMissing"));
       return;
     }
 
     const priceValue = Number.parseInt(price, 10);
-    const timeValue = Number.parseInt(time, 10);
+    const timeValue = time.trim().length > 0 ? Number.parseInt(time, 10) : null;
     const peopleValue = Number.parseInt(people, 10);
 
     if (
       Number.isNaN(priceValue) ||
-      Number.isNaN(timeValue) ||
       Number.isNaN(peopleValue) ||
       peopleValue <= 0
     ) {
+      setMessage(t("messageInvalid"));
+      return;
+    }
+    if (timeValue !== null && Number.isNaN(timeValue)) {
       setMessage(t("messageInvalid"));
       return;
     }
@@ -876,7 +889,11 @@ export default function Home() {
               onClick={() => {
                 setMenu(lastRecord.menu);
                 setPrice(String(lastRecord.price));
-                setTime(String(lastRecord.timeMinutes));
+                setTime(
+                  lastRecord.timeMinutes === null
+                    ? ""
+                    : String(lastRecord.timeMinutes),
+                );
                 setPeople(String(lastRecord.people));
                 setRegion(lastRecord.region ?? "KR");
               }}
@@ -1268,7 +1285,7 @@ export default function Home() {
                                   record.region,
                                   locale
                                 ),
-                                time: record.timeMinutes,
+                                time: record.timeMinutes ?? "-",
                                 people: record.people
                               })}
                             </span>

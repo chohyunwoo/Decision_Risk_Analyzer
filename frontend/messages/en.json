@@ -32,7 +32,7 @@
     "pricePlaceholderKR": "e.g. 28000",
     "pricePlaceholderUS": "e.g. 30",
     "pricePlaceholderJP": "e.g. 1500",
-    "timeLabel": "Estimated time (min)",
+    "timeLabel": "Estimated time (min, optional)",
     "timePlaceholder": "e.g. 30",
     "peopleLabel": "People",
     "peopleDefaultHint": "Default is 1 person.",
@@ -60,9 +60,9 @@
     "trialsRemaining": "Free trials remaining: {count}",
     "recentMenus": "Recent menus",
     "useLastInput": "Use last input",
-    "messageMissing": "Please enter price, time, and people count.",
+    "messageMissing": "Please enter price and people count.",
     "messageTrials": "Free trials are limited to 3.",
-    "messageInvalid": "Please enter valid numbers for price, time, and people.",
+    "messageInvalid": "Price and people must be numbers; time is optional but must be numeric if entered.",
     "messageLoginRequired": "Please log in to use the service.",
     "weeklySummary": "Weekly summary",
     "last7Days": "Last 7 days",
@@ -104,7 +104,8 @@
     "noMenu": "No menu",
     "risk": "Risk",
     "recordMeta": "{price} | {time} min | {people} people",
-    "noRecord": "No record"
+    "noRecord": "No record",
+    "aiExplanationBodyNoTime": "Based on price per person {pricePerPerson}, the risk is {label}."
   },
   "Auth": {
     "loginTitle": "Log in",
@@ -163,8 +164,3 @@
     "roleAdmin": "Admin"
   }
 }
-
-
-
-
-
