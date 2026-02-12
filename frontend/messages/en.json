@@ -63,6 +63,7 @@
     "messageMissing": "Please enter price, time, and people count.",
     "messageTrials": "Free trials are limited to 3.",
     "messageInvalid": "Please enter valid numbers for price, time, and people.",
+    "messageLoginRequired": "Please log in to use the service.",
     "weeklySummary": "Weekly summary",
     "last7Days": "Last 7 days",
     "totalSpend": "Total spend",
@@ -75,7 +76,7 @@
     "reportBadge": "Report",
     "reportSummary": "Overall risk is {label} (score {score}).",
     "reportInputs": "Inputs",
-    "reportInputLine": "Menu: {menu} · Price: {price} · Time: {time} · People: {people}",
+    "reportInputLine": "Menu: {menu} 쨌 Price: {price} 쨌 Time: {time} 쨌 People: {people}",
     "reportRegion": "Region",
     "reportTip": "Tip: refine the menu or adjust price/time to lower risk.",
     "riskTimeline": "Risk timeline",
@@ -162,6 +163,7 @@
     "roleAdmin": "Admin"
   }
 }
+
 
 
 

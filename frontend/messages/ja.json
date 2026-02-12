@@ -1,4 +1,4 @@
-﻿{
+{
     "Common":  {
                    "appName":  "Riskly",
                    "home":  "ホーム",
@@ -43,6 +43,7 @@
                      "messageMissing":  "価格、時間、人数を入力してください。",
                      "messageTrials":  "無料体験は3回までです。",
                      "messageInvalid":  "価格、時間、人数は数値で入力してください。",
+                     "messageLoginRequired":  "ログインしてご利用ください。",
                      "weeklySummary":  "週間サマリー",
                      "last7Days":  "過去7日",
                      "totalSpend":  "合計支出",
@@ -162,3 +163,4 @@
                      "homeButton":  "ホームへ"
                  }
 }
+

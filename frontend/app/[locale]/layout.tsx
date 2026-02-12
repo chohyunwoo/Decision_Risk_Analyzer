@@ -11,21 +11,11 @@ export const runtime = "edge";
 
 const SITE_NAME = "Riskly";
 const SITE_DESCRIPTION =
-  "Riskly는 가격·시간·인원 입력만으로 일상 의사결정 리스크를 점수화하는 결정 지원 도구입니다.";
+  "Riskly? ???????? ????? ?? ???? ???? ????? ?? ?? ?????.";
 const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ?? "https://riskly.store";
 const OG_IMAGE =
   process.env.NEXT_PUBLIC_OG_IMAGE ?? `${SITE_URL}/og.png`;
-const GOOGLE_VERIFICATION = process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
-const NAVER_VERIFICATION = process.env.NEXT_PUBLIC_NAVER_SITE_VERIFICATION;
-
-const verification: Metadata["verification"] = {};
-if (GOOGLE_VERIFICATION) {
-  verification.google = GOOGLE_VERIFICATION;
-}
-if (NAVER_VERIFICATION) {
-  verification.other = { "naver-site-verification": NAVER_VERIFICATION };
-}
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -76,8 +66,6 @@ export const metadata: Metadata = {
       "max-video-preview": -1
     }
   },
-  verification:
-    Object.keys(verification).length > 0 ? verification : undefined,
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",

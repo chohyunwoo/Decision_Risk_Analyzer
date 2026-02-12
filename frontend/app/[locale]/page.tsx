@@ -467,6 +467,11 @@ export default function Home() {
     setAiError(null);
     setWeeklyAiError(null);
 
+    if (!authUserId) {
+      setMessage(t("messageLoginRequired"));
+      return;
+    }
+
     if (!price.trim() || !time.trim() || !people.trim()) {
       setMessage(t("messageMissing"));
       return;
@@ -829,7 +834,8 @@ export default function Home() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <button
                 type="submit"
-                className="rounded-xl bg-[#1152d4] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1152d4]/20 transition-all active:scale-[0.98]"
+                className="rounded-xl bg-[#1152d4] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1152d4]/20 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#1152d4]/60"
+                disabled={!authUserId}
               >
                 {t("analyze")}
               </button>
@@ -842,7 +848,7 @@ export default function Home() {
             </div>
             {!authUserId && (
               <p className="text-xs text-[#1e293b]/60">
-                {t("upgradeLoginNotice")}
+                {t("messageLoginRequired")}
               </p>
             )}
           </form>
