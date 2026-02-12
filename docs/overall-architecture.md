@@ -128,7 +128,7 @@ Decision Risk Analyzer는 사용자가 자연어로 의사결정 시나리오를
 | 분석 | 자연어 입력 → AI 리스크 추출 → MC 시뮬레이션 → 스코어링 → 리포트 |
 | 카테고리 | Career, Investment, Business, Personal, Other (5종) |
 | 인증 | Google OAuth + 이메일/비밀번호 |
-| 구독 | Free (5회/월) + Pro ($9.99, 무제한) |
+| 구독 | Free (5회/월) + Pro ($5.50, 무제한) |
 | UI | 랜딩, 분석 위자드, 리포트 뷰어, 대시보드, 가격 페이지 |
 | 차트 | 리스크 매트릭스, MC 분포, 토네이도 차트 |
 | i18n | 영어 (기본) |

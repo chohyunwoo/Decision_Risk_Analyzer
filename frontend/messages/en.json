@@ -42,6 +42,7 @@
     "upgrade": "Upgrade to PRO",
     "upgradeLoginNotice": "Log in to upgrade your plan.",
     "upgradeToUnlock": "Unlock with PRO",
+    "proPrice": "$5.50 / month",
     "aiExplanationTitle": "AI explanation",
     "aiExplanationBody": "Based on price per person {pricePerPerson} and time {time} min, the risk is {label}.",
     "aiExplanationEmpty": "Run an analysis to generate an explanation.",
@@ -141,7 +142,10 @@
     "resetSuccess": "Your password has been updated.",
     "resetError": "Unable to update password.",
     "resetMissing": "Please enter a password.",
-    "resetNoSession": "No reset session found. Please use the link again."
+    "resetNoSession": "No reset session found. Please use the link again.",
+    "forgotPassword": "Forgot password?",
+    "resetMissingEmail": "Please enter your email.",
+    "resetLinkSent": "Password reset link sent."
   },
   "Profile": {
     "title": "Profile",

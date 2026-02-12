@@ -1082,6 +1082,7 @@ export default function Home() {
             >
               {t("upgradeToUnlock")}
             </a>
+            <p className="text-xs text-slate-500">{t("proPrice")}</p>
           </section>
         )}
 
@@ -1101,12 +1102,15 @@ export default function Home() {
           ) : (
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-200 bg-slate-50 px-4 py-3">
               <p className="text-sm text-slate-500">{t("aiExplanationLocked")}</p>
-              <a
-                href={checkoutUrl}
-                className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
-              >
-                {t("upgradeToUnlock")}
-              </a>
+              <div className="flex flex-col items-end gap-1">
+                <a
+                  href={checkoutUrl}
+                  className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+                >
+                  {t("upgradeToUnlock")}
+                </a>
+                <p className="text-[11px] text-slate-500">{t("proPrice")}</p>
+              </div>
             </div>
           )}
           {aiError && (
@@ -1235,6 +1239,7 @@ export default function Home() {
             >
               {t("upgradeToUnlock")}
             </a>
+            <p className="text-xs text-slate-500">{t("proPrice")}</p>
           </section>
         )}
 
@@ -1324,6 +1329,7 @@ export default function Home() {
             >
               {t("upgradeToUnlock")}
             </a>
+            <p className="text-xs text-slate-500">{t("proPrice")}</p>
           </section>
         )}
 

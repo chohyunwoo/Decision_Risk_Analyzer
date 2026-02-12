@@ -54,7 +54,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
       {
         title: "3. 결제, 자동 갱신, 해지",
         items: [
-          "유료 플랜은 구독 기반이며 다음 결제일 이전 해지하지 않으면 자동 갱신될 수 있습니다.",
+          "유료 플랜은 월 $5.50 구독 기반이며 다음 결제일 이전 해지하지 않으면 자동 갱신될 수 있습니다.",
           "결제는 Polar(Merchant of Record)를 통해 처리되며 관련 디지털 세금이 포함될 수 있습니다.",
           "해지는 이후 갱신 결제를 중단하며, 법령상 의무가 없는 한 경과 기간 소급 환불은 제공되지 않습니다."
         ]
@@ -130,7 +130,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
       {
         title: "3. Billing, Renewals, and Cancellation",
         items: [
-          "Paid plans are subscription-based and may renew automatically unless canceled before the next billing date.",
+          "Paid plans are subscription-based ($5.50/month) and may renew automatically unless canceled before the next billing date.",
           "Billing is processed by Polar as Merchant of Record, including applicable digital tax handling.",
           "Cancellation prevents future renewals and does not retroactively refund elapsed periods unless required by law."
         ]
@@ -206,7 +206,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
       {
         title: "3. 決済・自動更新・解約",
         items: [
-          "有料プランはサブスクリプション方式で、次回請求日前に解約しない限り自動更新される場合があります。",
+          "有料プランは月$5.50のサブスクリプション方式で、次回請求日前に解約しない限り自動更新される場合があります。",
           "決済は Merchant of Record として Polar が処理し、該当するデジタル税務処理を含みます。",
           "解約すると将来の更新課金は停止されますが、法令上必要な場合を除き、経過期間の遡及返金は行いません。"
         ]
