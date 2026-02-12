@@ -1083,6 +1083,7 @@ export default function Home() {
               {t("upgradeToUnlock")}
             </a>
             <p className="text-xs text-slate-500">{t("proPrice")}</p>
+            <p className="text-[11px] text-slate-400">{t("proCancelAnytime")}</p>
           </section>
         )}
 
@@ -1110,6 +1111,9 @@ export default function Home() {
                   {t("upgradeToUnlock")}
                 </a>
                 <p className="text-[11px] text-slate-500">{t("proPrice")}</p>
+                <p className="text-[10px] text-slate-400">
+                  {t("proCancelAnytime")}
+                </p>
               </div>
             </div>
           )}
@@ -1240,6 +1244,7 @@ export default function Home() {
               {t("upgradeToUnlock")}
             </a>
             <p className="text-xs text-slate-500">{t("proPrice")}</p>
+            <p className="text-[11px] text-slate-400">{t("proCancelAnytime")}</p>
           </section>
         )}
 
@@ -1330,6 +1335,7 @@ export default function Home() {
               {t("upgradeToUnlock")}
             </a>
             <p className="text-xs text-slate-500">{t("proPrice")}</p>
+            <p className="text-[11px] text-slate-400">{t("proCancelAnytime")}</p>
           </section>
         )}
 
