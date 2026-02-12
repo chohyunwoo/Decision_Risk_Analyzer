@@ -134,7 +134,14 @@
     "nicknameLabel": "Nickname",
     "nicknamePlaceholder": "e.g. Lex",
     "errorMissingNickname": "Please enter a nickname.",
-    "passwordPlaceholder": "e.g. 10+ characters"
+    "passwordPlaceholder": "e.g. 10+ characters",
+    "resetTitle": "Reset password",
+    "resetSubtitle": "Enter a new password.",
+    "resetButton": "Update password",
+    "resetSuccess": "Your password has been updated.",
+    "resetError": "Unable to update password.",
+    "resetMissing": "Please enter a password.",
+    "resetNoSession": "No reset session found. Please use the link again."
   },
   "Profile": {
     "title": "Profile",
@@ -149,7 +156,26 @@
     "saveSuccess": "Profile saved.",
     "notSignedIn": "You need to log in to view your profile.",
     "goToLogin": "Go to login",
-    "adminLink": "Open admin console"
+    "adminLink": "Open admin console",
+    "resetPasswordTitle": "Reset password",
+    "resetPasswordDescription": "Enter a new password and update it directly.",
+    "resetPasswordButton": "Send reset link",
+    "resetPasswordSuccess": "Password reset link sent.",
+    "resetPasswordError": "Unable to send reset link.",
+    "deleteAccountTitle": "Delete account",
+    "deleteAccountDescription": "Deleting your account will permanently remove it.",
+    "deleteAccountButton": "Delete account",
+    "deleteAccountConfirm": "Are you sure? Your account will be permanently deleted.",
+    "deleteAccountSuccess": "Your account has been deleted.",
+    "deleteAccountError": "Unable to delete account.",
+    "changePasswordButton": "Change password",
+    "resetPasswordLinkButton": "Send reset link",
+    "newPasswordLabel": "New password",
+    "newPasswordConfirmLabel": "Confirm new password",
+    "passwordProviderLocked": "Google accounts cannot change passwords here.",
+    "errorPasswordMismatch": "Passwords do not match.",
+    "passwordPlaceholder": "e.g. 10+ characters",
+    "passwordConfirmPlaceholder": "Re-enter your password"
   },
   "Checkout": {
     "cancelTitle": "Payment was not completed",

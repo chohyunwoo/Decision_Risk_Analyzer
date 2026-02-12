@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { supabase } from "@/lib/supabase/client";
 
 type Notice = { type: "error" | "success"; message: string } | null;
@@ -12,6 +12,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const t = useTranslations("Profile");
   const tCommon = useTranslations("Common");
+  const locale = useLocale();
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -21,6 +22,9 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
+  const [authProvider, setAuthProvider] = useState<string | null>(null);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -30,9 +34,15 @@ export default function ProfilePage() {
       if (error || !data.user) {
         setEmail(null);
         setRole(null);
+        setAuthProvider(null);
         setLoading(false);
         return;
       }
+      const provider =
+        data.user.app_metadata?.provider ??
+        data.user.identities?.[0]?.provider ??
+        null;
+      setAuthProvider(provider);
 
       setUserId(data.user.id);
       const { data: profile, error: profileError } = await supabase
@@ -108,6 +118,53 @@ export default function ProfilePage() {
     setRole(null);
     setLoading(false);
     setAuthLoading(false);
+    router.replace("/");
+  };
+
+  const handleResetPassword = async () => {
+    if (authProvider && authProvider !== "email") {
+      setNotice({ type: "error", message: t("passwordProviderLocked") });
+      return;
+    }
+    if (!newPassword || !confirmNewPassword) {
+      setNotice({ type: "error", message: t("resetPasswordError") });
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setNotice({ type: "error", message: t("errorPasswordMismatch") });
+      return;
+    }
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
+    });
+    if (error) {
+      setNotice({ type: "error", message: t("resetPasswordError") });
+      return;
+    }
+    setNewPassword("");
+    setConfirmNewPassword("");
+    setNotice({ type: "success", message: t("resetPasswordSuccess") });
+  };
+
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(t("deleteAccountConfirm"));
+    if (!confirmed) return;
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setNotice({ type: "error", message: t("deleteAccountError") });
+      return;
+    }
+    const response = await fetch("/api/account/delete", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) {
+      setNotice({ type: "error", message: t("deleteAccountError") });
+      return;
+    }
+    await supabase.auth.signOut();
+    setNotice({ type: "success", message: t("deleteAccountSuccess") });
     router.replace("/");
   };
 
@@ -241,6 +298,73 @@ export default function ProfilePage() {
                 {saving ? tCommon("processing") : t("saveButton")}
               </button>
             </form>
+
+            <section className="mt-8 grid gap-4">
+              <div className="rounded-xl border border-[#1152d4]/10 bg-white p-4">
+                <h2 className="text-sm font-semibold text-[#0f172a]">
+                  {t("resetPasswordTitle")}
+                </h2>
+                <p className="mt-1 text-xs text-[#1e293b]/60">
+                  {t("resetPasswordDescription")}
+                </p>
+                {authProvider && authProvider !== "email" && (
+                  <p className="mt-2 text-xs font-semibold text-rose-600">
+                    {t("passwordProviderLocked")}
+                  </p>
+                )}
+                {(!authProvider || authProvider === "email") && (
+                  <div className="mt-4 grid gap-3">
+                    <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
+                      {t("newPasswordLabel")}
+                      <input
+                        type="password"
+                        className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
+                        value={newPassword}
+                        onChange={(event) => setNewPassword(event.target.value)}
+                        placeholder={t("passwordPlaceholder")}
+                        autoComplete="new-password"
+                      />
+                    </label>
+                    <label className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
+                      {t("newPasswordConfirmLabel")}
+                      <input
+                        type="password"
+                        className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-[#1152d4]/40"
+                        value={confirmNewPassword}
+                        onChange={(event) =>
+                          setConfirmNewPassword(event.target.value)
+                        }
+                        placeholder={t("passwordConfirmPlaceholder")}
+                        autoComplete="new-password"
+                      />
+                    </label>
+                    <button
+                      type="button"
+                      className="rounded-lg border border-[#1152d4]/20 px-3 py-2 text-xs font-semibold text-[#1152d4]"
+                      onClick={handleResetPassword}
+                    >
+                      {t("changePasswordButton")}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-4">
+                <h2 className="text-sm font-semibold text-rose-700">
+                  {t("deleteAccountTitle")}
+                </h2>
+                <p className="mt-1 text-xs text-rose-700/80">
+                  {t("deleteAccountDescription")}
+                </p>
+                <button
+                  type="button"
+                  className="mt-3 rounded-lg border border-rose-300 px-3 py-2 text-xs font-semibold text-rose-700"
+                  onClick={handleDeleteAccount}
+                >
+                  {t("deleteAccountButton")}
+                </button>
+              </div>
+            </section>
 
             {notice && (
               <p
