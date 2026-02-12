@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase/client";
 
 type AdminUser = {
@@ -16,7 +16,6 @@ type AdminUser = {
 export default function AdminPage() {
   const t = useTranslations("Admin");
   const tCommon = useTranslations("Common");
-  const locale = useLocale();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,30 +85,6 @@ export default function AdminPage() {
             <span className="text-[10px] font-medium uppercase tracking-wider text-[#1e293b]/60">
               Risk Analyzer
             </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex rounded-lg bg-[#1152d4]/5 p-1 text-[10px] font-semibold">
-              {[
-                { code: "ko", label: "KR", href: "/" },
-                { code: "en", label: "EN", href: "/en" },
-                { code: "ja", label: "JA", href: "/ja" }
-              ].map((lang) => {
-                const active = locale === lang.code;
-                return (
-                  <a
-                    key={lang.code}
-                    href={lang.href}
-                    className={`rounded-md px-2 py-0.5 ${
-                      active
-                        ? "bg-white text-[#1152d4] shadow-sm"
-                        : "text-[#1e293b]/50"
-                    }`}
-                  >
-                    {lang.label}
-                  </a>
-                );
-              })}
-            </div>
           </div>
         </div>
       </nav>

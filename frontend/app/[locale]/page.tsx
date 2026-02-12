@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useLocale, useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 const RECORDS_KEY = "dra_records_v1";
 const POLAR_PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
@@ -628,15 +629,16 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="flex rounded-lg bg-[#1152d4]/5 p-1 text-[10px] font-semibold">
               {[
-                { code: "ko", label: "KR", href: "/" },
-                { code: "en", label: "EN", href: "/en" },
-                { code: "ja", label: "JA", href: "/ja" }
+                { code: "ko", label: "KR" },
+                { code: "en", label: "EN" },
+                { code: "ja", label: "JA" }
               ].map((lang) => {
                 const active = locale === lang.code;
                 return (
-                  <a
+                  <Link
                     key={lang.code}
-                    href={lang.href}
+                    href="/"
+                    locale={lang.code as "ko" | "en" | "ja"}
                     className={`rounded-md px-2 py-0.5 ${
                       active
                         ? "bg-white text-[#1152d4] shadow-sm"
@@ -644,7 +646,7 @@ export default function Home() {
                     }`}
                   >
                     {lang.label}
-                  </a>
+                  </Link>
                 );
               })}
             </div>

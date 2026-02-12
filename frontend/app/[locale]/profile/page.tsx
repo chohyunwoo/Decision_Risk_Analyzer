@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Link } from "@/i18n/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase/client";
 
 type Notice = { type: "error" | "success"; message: string } | null;
@@ -10,7 +10,6 @@ type Notice = { type: "error" | "success"; message: string } | null;
 export default function ProfilePage() {
   const t = useTranslations("Profile");
   const tCommon = useTranslations("Common");
-  const locale = useLocale();
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -114,28 +113,6 @@ export default function ProfilePage() {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex rounded-lg bg-[#1152d4]/5 p-1 text-[10px] font-semibold">
-              {[
-                { code: "ko", label: "KR", href: "/" },
-                { code: "en", label: "EN", href: "/en" },
-                { code: "ja", label: "JA", href: "/ja" }
-              ].map((lang) => {
-                const active = locale === lang.code;
-                return (
-                  <a
-                    key={lang.code}
-                    href={lang.href}
-                    className={`rounded-md px-2 py-0.5 ${
-                      active
-                        ? "bg-white text-[#1152d4] shadow-sm"
-                        : "text-[#1e293b]/50"
-                    }`}
-                  >
-                    {lang.label}
-                  </a>
-                );
-              })}
-            </div>
             <span className="text-[10px] font-semibold text-[#1e293b]/60">
               {loading
                 ? tCommon("processing")
@@ -242,13 +219,6 @@ export default function ProfilePage() {
                   placeholder={t("nicknamePlaceholder")}
                 />
               </label>
-
-              <div className="grid gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1152d4]">
-                <span>{t("roleLabel")}</span>
-                <div className="rounded-lg bg-[#f6f6f8] px-4 py-3 text-sm text-[#1e293b]/70">
-                  {role ?? "user"}
-                </div>
-              </div>
 
               <button
                 type="submit"

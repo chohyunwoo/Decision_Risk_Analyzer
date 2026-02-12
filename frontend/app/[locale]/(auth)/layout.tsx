@@ -2,11 +2,9 @@ import { getTranslations } from "next-intl/server";
 
 type AuthLayoutProps = {
   children: React.ReactNode;
-  params: Promise<{ locale: string }>;
 };
 
-export default async function AuthLayout({ children, params }: AuthLayoutProps) {
-  const { locale } = await params;
+export default async function AuthLayout({ children }: AuthLayoutProps) {
   const tCommon = await getTranslations("Common");
 
   return (
@@ -20,30 +18,6 @@ export default async function AuthLayout({ children, params }: AuthLayoutProps) 
             <span className="text-[10px] font-medium uppercase tracking-wider text-[#1e293b]/60">
               Risk Analyzer
             </span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex rounded-lg bg-[#1152d4]/5 p-1 text-[10px] font-semibold">
-              {[
-                { code: "ko", label: "KR", href: "/" },
-                { code: "en", label: "EN", href: "/en" },
-                { code: "ja", label: "JA", href: "/ja" }
-              ].map((lang) => {
-                const active = locale === lang.code;
-                return (
-                  <a
-                    key={lang.code}
-                    href={lang.href}
-                    className={`rounded-md px-2 py-0.5 ${
-                      active
-                        ? "bg-white text-[#1152d4] shadow-sm"
-                        : "text-[#1e293b]/50"
-                    }`}
-                  >
-                    {lang.label}
-                  </a>
-                );
-              })}
-            </div>
           </div>
         </div>
       </nav>
