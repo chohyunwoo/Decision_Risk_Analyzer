@@ -107,7 +107,12 @@
     "recordMeta": "{price} | {time} min | {people} people",
     "noRecord": "No record",
     "aiExplanationBodyNoTime": "Turn price per person {pricePerPerson} into a clear risk explanation: {label}.",
-    "proCancelAnytime": "Cancel anytime"
+    "proCancelAnytime": "Cancel anytime",
+    "messageGuestTrial": "Guest users can try 3 times per month. Log in for unlimited free usage.",
+    "messageGuestRemaining": "Guest trial remaining: {remaining}/{limit}",
+    "guestCtaTitle": "Keep using it for free by logging in",
+    "guestCtaBody": "Log in for unlimited free usage. Records, calendar, and AI summaries are available in Pro.",
+    "guestCtaButton": "Log in"
   },
   "Auth": {
     "loginTitle": "Log in",
@@ -180,7 +185,11 @@
     "passwordProviderLocked": "Google accounts cannot change passwords here.",
     "errorPasswordMismatch": "Passwords do not match.",
     "passwordPlaceholder": "e.g. 10+ characters",
-    "passwordConfirmPlaceholder": "Re-enter your password"
+    "passwordConfirmPlaceholder": "Re-enter your password",
+    "subscriptionTitle": "Subscription",
+    "subscriptionActive": "Your Pro subscription is active.",
+    "manageSubscriptionButton": "Manage subscription",
+    "manageSubscriptionError": "Unable to open the subscription portal."
   },
   "Checkout": {
     "cancelTitle": "Payment was not completed",

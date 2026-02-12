@@ -6,6 +6,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
 const RECORDS_KEY = "dra_records_v1";
+const GUEST_TRIAL_KEY_PREFIX = "dra_guest_trials_";
+const GUEST_TRIAL_LIMIT = 3;
 const POLAR_PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
 
 type RiskLabelKey = "low" | "medium" | "high";
@@ -216,6 +218,7 @@ export default function Home() {
   const [records, setRecords] = useState<DecisionRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
+  const [guestTrialCount, setGuestTrialCount] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -270,6 +273,22 @@ export default function Home() {
       data.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (authUserId) {
+      setGuestTrialCount(null);
+      return;
+    }
+    try {
+      const count = Number.parseInt(
+        localStorage.getItem(getGuestTrialKey()) ?? "0",
+        10
+      );
+      setGuestTrialCount(Number.isNaN(count) ? 0 : count);
+    } catch {
+      setGuestTrialCount(null);
+    }
+  }, [authUserId]);
 
   useEffect(() => {
     const stored = localStorage.getItem(RECORDS_KEY);
@@ -424,6 +443,12 @@ export default function Home() {
     return t("riskLabelHigh");
   };
 
+  const getGuestTrialKey = () => {
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    return `${GUEST_TRIAL_KEY_PREFIX}${now.getFullYear()}-${month}`;
+  };
+
   const regionConfig = REGION_CONFIG[region];
   const isPro = plan === "pro";
 
@@ -482,11 +507,6 @@ export default function Home() {
     setAiError(null);
     setWeeklyAiError(null);
 
-    if (!authUserId) {
-      setMessage(t("messageLoginRequired"));
-      return;
-    }
-
     if (!price.trim() || !people.trim()) {
       setMessage(t("messageMissing"));
       return;
@@ -507,6 +527,31 @@ export default function Home() {
     if (timeValue !== null && Number.isNaN(timeValue)) {
       setMessage(t("messageInvalid"));
       return;
+    }
+
+    if (!authUserId) {
+      try {
+        const trialKey = getGuestTrialKey();
+        const currentCount = Number.parseInt(
+          localStorage.getItem(trialKey) ?? "0",
+          10
+        );
+        if (!Number.isNaN(currentCount) && currentCount >= GUEST_TRIAL_LIMIT) {
+          setGuestTrialCount(currentCount);
+          setMessage(t("messageTrials"));
+          return;
+        }
+        const nextCount = Number.isNaN(currentCount)
+          ? 1
+          : currentCount + 1;
+        localStorage.setItem(
+          trialKey,
+          String(nextCount)
+        );
+        setGuestTrialCount(nextCount);
+      } catch {
+        // If storage is unavailable, allow the guest trial without persisting.
+      }
     }
 
     const computedScore = computeRiskScore(
@@ -855,7 +900,6 @@ export default function Home() {
               <button
                 type="submit"
                 className="rounded-xl bg-[#1152d4] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#1152d4]/20 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-[#1152d4]/60"
-                disabled={!authUserId}
               >
                 {t("analyze")}
               </button>
@@ -867,9 +911,17 @@ export default function Home() {
               </a>
             </div>
             {!authUserId && (
-              <p className="text-xs text-[#1e293b]/60">
-                {t("messageLoginRequired")}
-              </p>
+              <div className="text-xs text-[#1e293b]/60">
+                <p>{t("messageGuestTrial")}</p>
+                {guestTrialCount !== null && (
+                  <p>
+                    {t("messageGuestRemaining", {
+                      remaining: Math.max(0, GUEST_TRIAL_LIMIT - guestTrialCount),
+                      limit: GUEST_TRIAL_LIMIT
+                    })}
+                  </p>
+                )}
+              </div>
             )}
           </form>
 
@@ -988,6 +1040,22 @@ export default function Home() {
               </div>
               <p className="text-xs text-slate-500">{t("reportTip")}</p>
             </div>
+            {!authUserId && (
+              <div className="rounded-xl border border-[#1152d4]/15 bg-[#1152d4]/5 px-4 py-3 text-sm text-slate-700">
+                <p className="font-semibold text-[#0f172a]">
+                  {t("guestCtaTitle")}
+                </p>
+                <p className="mt-1 text-xs text-slate-600">
+                  {t("guestCtaBody")}
+                </p>
+                <Link
+                  href="./login"
+                  className="mt-3 inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+                >
+                  {t("guestCtaButton")}
+                </Link>
+              </div>
+            )}
           </section>
         )}
 

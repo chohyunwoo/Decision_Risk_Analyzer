@@ -16,6 +16,22 @@ type PolarOrder = {
   metadata?: Record<string, unknown> | null;
 };
 
+type PolarSubscription = {
+  id: string;
+  status?: string | null;
+  cancel_at_period_end?: boolean | null;
+  customer_id?: string | null;
+  customer?: {
+    id?: string | null;
+    email?: string | null;
+    external_id?: string | null;
+    metadata?: Record<string, unknown> | null;
+  } | null;
+  customer_email?: string | null;
+  customer_external_id?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
 const getApiBase = () => {
   return process.env.POLAR_SERVER === "sandbox"
     ? "https://sandbox-api.polar.sh/v1"
@@ -46,19 +62,29 @@ const refundOrder = async (orderId: string) => {
   }
 };
 
-const grantEntitlement = async (order: PolarOrder) => {
-  const metadata = order.metadata ?? {};
+const getIdentity = (payload: {
+  customer?: { email?: string | null; external_id?: string | null } | null;
+  customer_email?: string | null;
+  customer_external_id?: string | null;
+  metadata?: Record<string, unknown> | null;
+}) => {
+  const metadata = payload.metadata ?? {};
   const userId =
     (metadata.userId as string | undefined) ??
     (metadata.user_id as string | undefined) ??
-    order.customer?.external_id ??
-    order.customer_external_id ??
+    payload.customer?.external_id ??
+    payload.customer_external_id ??
     null;
   const email =
     (metadata.email as string | undefined) ??
     (metadata.customerEmail as string | undefined) ??
-    order.customer?.email ??
-    (order.customer_email ?? null);
+    payload.customer?.email ??
+    (payload.customer_email ?? null);
+  return { userId, email };
+};
+
+const grantEntitlement = async (order: PolarOrder) => {
+  const { userId, email } = getIdentity(order);
 
   if (!userId && !email) {
     throw new Error("Missing customer identity for entitlement");
@@ -86,6 +112,35 @@ const grantEntitlement = async (order: PolarOrder) => {
   }
 };
 
+const revokeEntitlement = async (subscription: PolarSubscription) => {
+  const { userId, email } = getIdentity(subscription);
+
+  if (!userId && !email) {
+    throw new Error("Missing customer identity for cancellation");
+  }
+
+  const supabase = getSupabaseAdmin();
+  const baseQuery = supabase
+    .from("profiles")
+    .update({
+      plan: "free",
+      polar_customer_id: subscription.customer?.id ?? subscription.customer_id ?? null,
+      polar_order_id: null
+    });
+
+  const { error, data } = userId
+    ? await baseQuery.eq("id", userId).select("id").maybeSingle()
+    : await baseQuery.eq("email", email ?? "").select("id").maybeSingle();
+
+  if (error) {
+    throw new Error(`Profile update failed: ${error.message}`);
+  }
+
+  if (!data?.id) {
+    throw new Error("Profile not found for subscription");
+  }
+};
+
 export const POST = Webhooks({
   webhookSecret: process.env.POLAR_WEBHOOK_SECRET ?? "",
   onOrderPaid: async (payload) => {
@@ -99,5 +154,22 @@ export const POST = Webhooks({
       await refundOrder(order.id);
       throw error;
     }
+  },
+  onSubscriptionCanceled: async (payload) => {
+    const subscription = (payload as unknown as { data?: PolarSubscription }).data;
+    if (!subscription?.id) {
+      throw new Error("Missing subscription data in webhook payload");
+    }
+    if (subscription.cancel_at_period_end) {
+      return;
+    }
+    await revokeEntitlement(subscription);
+  },
+  onSubscriptionRevoked: async (payload) => {
+    const subscription = (payload as unknown as { data?: PolarSubscription }).data;
+    if (!subscription?.id) {
+      throw new Error("Missing subscription data in webhook payload");
+    }
+    await revokeEntitlement(subscription);
   }
 });

@@ -18,9 +18,11 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [nickname, setNickname] = useState("");
   const [role, setRole] = useState<"user" | "admin" | null>(null);
+  const [plan, setPlan] = useState<"free" | "pro" | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
+  const [manageLoading, setManageLoading] = useState(false);
   const [notice, setNotice] = useState<Notice>(null);
   const [authProvider, setAuthProvider] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState("");
@@ -34,6 +36,7 @@ export default function ProfilePage() {
       if (error || !data.user) {
         setEmail(null);
         setRole(null);
+        setPlan(null);
         setAuthProvider(null);
         setLoading(false);
         return;
@@ -47,7 +50,7 @@ export default function ProfilePage() {
       setUserId(data.user.id);
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("email, name, nickname, role")
+        .select("email, name, nickname, role, plan")
         .eq("id", data.user.id)
         .single();
 
@@ -58,6 +61,7 @@ export default function ProfilePage() {
         setName("");
         setNickname("");
         setRole(null);
+        setPlan("free");
         setLoading(false);
         return;
       }
@@ -66,6 +70,7 @@ export default function ProfilePage() {
       setName(profile.name ?? "");
       setNickname(profile.nickname ?? "");
       setRole(profile.role ?? null);
+      setPlan(profile.plan === "pro" ? "pro" : "free");
       setLoading(false);
     });
 
@@ -116,9 +121,38 @@ export default function ProfilePage() {
     setName("");
     setNickname("");
     setRole(null);
+    setPlan(null);
     setLoading(false);
     setAuthLoading(false);
     router.replace("/");
+  };
+
+  const handleManageSubscription = async () => {
+    setManageLoading(true);
+    setNotice(null);
+    const { data } = await supabase.auth.getSession();
+    const token = data.session?.access_token;
+    if (!token) {
+      setNotice({ type: "error", message: t("manageSubscriptionError") });
+      setManageLoading(false);
+      return;
+    }
+    const response = await fetch("/api/polar/portal", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!response.ok) {
+      setNotice({ type: "error", message: t("manageSubscriptionError") });
+      setManageLoading(false);
+      return;
+    }
+    const payload = (await response.json()) as { url?: string };
+    if (!payload.url) {
+      setNotice({ type: "error", message: t("manageSubscriptionError") });
+      setManageLoading(false);
+      return;
+    }
+    window.location.href = payload.url;
   };
 
   const handleResetPassword = async () => {
@@ -300,6 +334,26 @@ export default function ProfilePage() {
             </form>
 
             <section className="mt-8 grid gap-4">
+              {plan === "pro" && (
+                <div className="rounded-xl border border-[#1152d4]/10 bg-white p-4">
+                  <h2 className="text-sm font-semibold text-[#0f172a]">
+                    {t("subscriptionTitle")}
+                  </h2>
+                  <p className="mt-1 text-xs text-[#1e293b]/60">
+                    {t("subscriptionActive")}
+                  </p>
+                  <button
+                    type="button"
+                    className="mt-3 rounded-lg border border-[#1152d4]/20 px-3 py-2 text-xs font-semibold text-[#1152d4]"
+                    onClick={handleManageSubscription}
+                    disabled={manageLoading}
+                  >
+                    {manageLoading
+                      ? tCommon("processing")
+                      : t("manageSubscriptionButton")}
+                  </button>
+                </div>
+              )}
               <div className="rounded-xl border border-[#1152d4]/10 bg-white p-4">
                 <h2 className="text-sm font-semibold text-[#0f172a]">
                   {t("resetPasswordTitle")}
