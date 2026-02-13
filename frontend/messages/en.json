@@ -40,7 +40,7 @@
     "peopleIncrease": "Increase people",
     "analyze": "Calculate risk score",
     "upgrade": "Upgrade to PRO",
-    "upgradeLoginNotice": "Log in to upgrade your plan.",
+    "upgradeLoginNotice": "Log in to link your subscription to your account and verify payment status.",
     "upgradeToUnlock": "Unlock Pro",
     "proPrice": "$5.50 / month",
     "aiExplanationTitle": "AI summary",
@@ -111,7 +111,7 @@
     "messageGuestTrial": "Guest users can try 3 times per month. Log in for unlimited free usage.",
     "messageGuestRemaining": "Guest trial remaining: {remaining}/{limit}",
     "guestCtaTitle": "Keep using it for free by logging in",
-    "guestCtaBody": "Log in for unlimited free usage. Records, calendar, and AI summaries are available in Pro.",
+    "guestCtaBody": "Log in for unlimited free usage and to create the account needed for subscription linking, billing management, and restores. Records, calendar, and AI summaries are available in Pro.",
     "guestCtaButton": "Log in"
   },
   "Auth": {
