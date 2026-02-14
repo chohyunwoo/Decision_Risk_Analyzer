@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
+import { supabase } from "@/lib/supabase/client";
 
 type MealCategory = {
   idCategory: string;
@@ -65,12 +67,41 @@ export default function ExplorePage() {
   const [mealsLoading, setMealsLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState("");
+  const [authLoading, setAuthLoading] = useState(true);
+  const [isSignedIn, setIsSignedIn] = useState(false);
   const [selectedMealId, setSelectedMealId] = useState<string | null>(null);
   const [selectedMealDetail, setSelectedMealDetail] = useState<MealDetail | null>(
     null
   );
 
   useEffect(() => {
+    let active = true;
+
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setIsSignedIn(!!data.session?.user?.id);
+      setAuthLoading(false);
+    });
+
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsSignedIn(!!session?.user?.id);
+      setAuthLoading(false);
+    });
+
+    return () => {
+      active = false;
+      data.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isSignedIn) {
+      setCategories([]);
+      setSelectedCategory("");
+      setCategoriesLoading(false);
+      return;
+    }
+
     let active = true;
     const controller = new AbortController();
 
@@ -109,9 +140,14 @@ export default function ExplorePage() {
       active = false;
       controller.abort();
     };
-  }, [locale]);
+  }, [isSignedIn, locale]);
 
   useEffect(() => {
+    if (!isSignedIn) {
+      setMeals([]);
+      setMealsLoading(false);
+      return;
+    }
     if (!selectedCategory) return;
 
     let active = true;
@@ -155,9 +191,15 @@ export default function ExplorePage() {
       active = false;
       controller.abort();
     };
-  }, [selectedCategory, locale]);
+  }, [isSignedIn, selectedCategory, locale]);
 
   useEffect(() => {
+    if (!isSignedIn) {
+      setSelectedMealId(null);
+      setSelectedMealDetail(null);
+      setDetailLoading(false);
+      return;
+    }
     if (!selectedMealId) return;
 
     let active = true;
@@ -193,7 +235,7 @@ export default function ExplorePage() {
       active = false;
       controller.abort();
     };
-  }, [selectedMealId, locale]);
+  }, [isSignedIn, selectedMealId, locale]);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_#e8f0ff,_#f8fafc_55%)] text-[#0f172a]">
@@ -206,127 +248,142 @@ export default function ExplorePage() {
           <p className="text-sm text-slate-600">{t("subtitle")}</p>
         </header>
 
-        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-slate-700">{t("categoryLabel")}</h2>
-          {categoriesLoading ? (
-            <p className="text-sm text-slate-500">{t("loadingCategories")}</p>
-          ) : categories.length === 0 ? (
-            <p className="text-sm text-slate-500">{t("emptyCategories")}</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {categories.map((category) => {
-                const selected = category.strCategory === selectedCategory;
-                return (
-                  <button
-                    key={category.idCategory}
-                    type="button"
-                    className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
-                      selected
-                        ? "border-[#1152d4] bg-[#1152d4] text-white"
-                        : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
-                    }`}
-                    onClick={() => setSelectedCategory(category.strCategory)}
-                  >
-                    {category.strCategory}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        {!authLoading && !isSignedIn ? (
+          <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-5">
+            <h2 className="text-sm font-semibold text-slate-700">{t("loginRequiredTitle")}</h2>
+            <p className="text-sm text-slate-600">{t("loginRequiredBody")}</p>
+            <Link
+              href="/login"
+              className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1.5 text-xs font-semibold text-[#1152d4]"
+            >
+              {t("goToLogin")}
+            </Link>
+          </section>
+        ) : (
+          <>
+            <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <h2 className="text-sm font-semibold text-slate-700">{t("categoryLabel")}</h2>
+              {categoriesLoading ? (
+                <p className="text-sm text-slate-500">{t("loadingCategories")}</p>
+              ) : categories.length === 0 ? (
+                <p className="text-sm text-slate-500">{t("emptyCategories")}</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => {
+                    const selected = category.strCategory === selectedCategory;
+                    return (
+                      <button
+                        key={category.idCategory}
+                        type="button"
+                        className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+                          selected
+                            ? "border-[#1152d4] bg-[#1152d4] text-white"
+                            : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
+                        }`}
+                        onClick={() => setSelectedCategory(category.strCategory)}
+                      >
+                        {category.strCategory}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
 
-        <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4">
-          <h2 className="text-sm font-semibold text-slate-700">{t("recipesLabel")}</h2>
-          {error && <p className="text-sm text-rose-600">{error}</p>}
-          {mealsLoading ? (
-            <p className="text-sm text-slate-500">{t("loadingRecipes")}</p>
-          ) : meals.length === 0 ? (
-            <p className="text-sm text-slate-500">{t("emptyRecipes")}</p>
-          ) : (
-            <div className="grid gap-3">
-              {meals.map((meal) => {
-                const isSelected = selectedMealId === meal.idMeal;
-                const showDetail = isSelected;
+            <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+              <h2 className="text-sm font-semibold text-slate-700">{t("recipesLabel")}</h2>
+              {error && <p className="text-sm text-rose-600">{error}</p>}
+              {mealsLoading ? (
+                <p className="text-sm text-slate-500">{t("loadingRecipes")}</p>
+              ) : meals.length === 0 ? (
+                <p className="text-sm text-slate-500">{t("emptyRecipes")}</p>
+              ) : (
+                <div className="grid gap-3">
+                  {meals.map((meal) => {
+                    const isSelected = selectedMealId === meal.idMeal;
+                    const showDetail = isSelected;
 
-                return (
-                  <div key={meal.idMeal} className="grid gap-2">
-                    <button
-                      type="button"
-                      className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
-                        isSelected
-                          ? "border-[#1152d4]/40 bg-[#1152d4]/5"
-                          : "border-slate-200 bg-slate-50 hover:border-slate-300"
-                      }`}
-                      onClick={() => {
-                        setSelectedMealId((prev) =>
-                          prev === meal.idMeal ? null : meal.idMeal
-                        );
-                        setError("");
-                      }}
-                    >
-                      <img
-                        src={meal.strMealThumb}
-                        alt={meal.strMeal}
-                        className="h-16 w-16 rounded-lg object-cover"
-                        loading="lazy"
-                      />
-                      <div className="grid gap-1">
-                        <p className="text-sm font-semibold text-slate-800">{meal.strMeal}</p>
-                        <p className="text-xs text-[#1152d4]">{t("viewDetails")}</p>
-                      </div>
-                    </button>
-
-                    {showDetail && (
-                      <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4">
-                        <h2 className="text-sm font-semibold text-slate-700">
-                          {t("detailTitle")}
-                        </h2>
-                        {detailLoading ? (
-                          <p className="text-sm text-slate-500">{t("loadingDetails")}</p>
-                        ) : !selectedMealDetail ? (
-                          <p className="text-sm text-slate-500">{t("emptyDetails")}</p>
-                        ) : (
-                          <div className="grid gap-3">
-                            <img
-                              src={selectedMealDetail.strMealThumb}
-                              alt={selectedMealDetail.strMeal}
-                              className="h-44 w-full rounded-xl object-cover"
-                              loading="lazy"
-                            />
-                            <h3 className="text-base font-bold text-slate-800">
-                              {selectedMealDetail.strMeal}
-                            </h3>
-                            <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                {t("ingredientsTitle")}
-                              </p>
-                              <ul className="grid gap-1 text-sm text-slate-700">
-                                {parseIngredients(selectedMealDetail).map((item) => (
-                                  <li key={`${item.name}-${item.measure}`}>
-                                    {item.name}
-                                    {item.measure ? ` - ${item.measure}` : ""}
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                                {t("instructionsTitle")}
-                              </p>
-                              <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
-                                {selectedMealDetail.strInstructions || t("emptyDetails")}
-                              </p>
-                            </div>
+                    return (
+                      <div key={meal.idMeal} className="grid gap-2">
+                        <button
+                          type="button"
+                          className={`flex items-center gap-3 rounded-xl border p-3 text-left transition ${
+                            isSelected
+                              ? "border-[#1152d4]/40 bg-[#1152d4]/5"
+                              : "border-slate-200 bg-slate-50 hover:border-slate-300"
+                          }`}
+                          onClick={() => {
+                            setSelectedMealId((prev) =>
+                              prev === meal.idMeal ? null : meal.idMeal
+                            );
+                            setError("");
+                          }}
+                        >
+                          <img
+                            src={meal.strMealThumb}
+                            alt={meal.strMeal}
+                            className="h-16 w-16 rounded-lg object-cover"
+                            loading="lazy"
+                          />
+                          <div className="grid gap-1">
+                            <p className="text-sm font-semibold text-slate-800">{meal.strMeal}</p>
+                            <p className="text-xs text-[#1152d4]">{t("viewDetails")}</p>
                           </div>
+                        </button>
+
+                        {showDetail && (
+                          <section className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4">
+                            <h2 className="text-sm font-semibold text-slate-700">
+                              {t("detailTitle")}
+                            </h2>
+                            {detailLoading ? (
+                              <p className="text-sm text-slate-500">{t("loadingDetails")}</p>
+                            ) : !selectedMealDetail ? (
+                              <p className="text-sm text-slate-500">{t("emptyDetails")}</p>
+                            ) : (
+                              <div className="grid gap-3">
+                                <img
+                                  src={selectedMealDetail.strMealThumb}
+                                  alt={selectedMealDetail.strMeal}
+                                  className="h-44 w-full rounded-xl object-cover"
+                                  loading="lazy"
+                                />
+                                <h3 className="text-base font-bold text-slate-800">
+                                  {selectedMealDetail.strMeal}
+                                </h3>
+                                <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    {t("ingredientsTitle")}
+                                  </p>
+                                  <ul className="grid gap-1 text-sm text-slate-700">
+                                    {parseIngredients(selectedMealDetail).map((item) => (
+                                      <li key={`${item.name}-${item.measure}`}>
+                                        {item.name}
+                                        {item.measure ? ` - ${item.measure}` : ""}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="grid gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                                    {t("instructionsTitle")}
+                                  </p>
+                                  <p className="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+                                    {selectedMealDetail.strInstructions || t("emptyDetails")}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </section>
                         )}
-                      </section>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </main>
 
       <div className="fixed bottom-0 left-0 right-0 border-t border-[#1152d4]/10 bg-white/90 backdrop-blur-xl">
@@ -334,7 +391,7 @@ export default function ExplorePage() {
           {[
             { label: tCommon("home"), href: "./", active: false },
             { label: tCommon("explore"), href: "./explore", active: true },
-            { label: tCommon("trends"), href: "#", active: false },
+            { label: tCommon("trends"), href: "./trends", active: false },
             { label: tCommon("profile"), href: "./profile", active: false }
           ].map((item) => (
             <a

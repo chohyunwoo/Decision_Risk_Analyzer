@@ -936,6 +936,34 @@ export default function Home() {
           <p>{t("riskFormula")}</p>
         </section>
 
+        {!planLoading && !isPro && (
+          <section className="grid gap-3 rounded-2xl border border-[#1152d4]/20 bg-[#1152d4]/5 p-6">
+            <h2 className="text-base font-bold text-[#0f172a]">
+              {t("proValueTitle")}
+            </h2>
+            <p className="text-sm text-slate-700">{t("proValueBody")}</p>
+            <ul className="grid gap-1 text-sm text-slate-700">
+              <li>- {t("proFeatureA")}</li>
+              <li>- {t("proFeatureB")}</li>
+              <li>- {t("proFeatureC")}</li>
+            </ul>
+            <div className="flex flex-wrap items-center gap-3">
+              <a
+                href={authUserId ? checkoutUrl : "./login"}
+                className="rounded-full bg-[#1152d4] px-4 py-2 text-sm font-semibold text-white"
+              >
+                {t("upgradeToUnlock")}
+              </a>
+              <p className="text-xs text-slate-600">
+                {t("proPrice")} | {t("proTrustLine")}
+              </p>
+              {!authUserId && (
+                <p className="text-xs text-slate-500">{t("upgradeLoginNotice")}</p>
+              )}
+            </div>
+          </section>
+        )}
+
         {score !== null && labelKey && (
           <section className="grid gap-4 rounded-2xl border border-slate-200 bg-white p-6">
             <div className="flex items-center justify-between">
@@ -1073,7 +1101,7 @@ export default function Home() {
               {t("upgradeToUnlock")}
             </a>
             <p className="text-xs text-slate-500">{t("proPrice")}</p>
-            <p className="text-[11px] text-slate-400">{t("proCancelAnytime")}</p>
+            <p className="text-[11px] text-slate-400">{t("proTrustLine")}</p>
           </section>
         )}
 
@@ -1102,7 +1130,7 @@ export default function Home() {
                 </a>
                 <p className="text-[11px] text-slate-500">{t("proPrice")}</p>
                 <p className="text-[10px] text-slate-400">
-                  {t("proCancelAnytime")}
+                  {t("proTrustLine")}
                 </p>
               </div>
             </div>
@@ -1234,7 +1262,7 @@ export default function Home() {
               {t("upgradeToUnlock")}
             </a>
             <p className="text-xs text-slate-500">{t("proPrice")}</p>
-            <p className="text-[11px] text-slate-400">{t("proCancelAnytime")}</p>
+            <p className="text-[11px] text-slate-400">{t("proTrustLine")}</p>
           </section>
         )}
 
@@ -1325,7 +1353,7 @@ export default function Home() {
               {t("upgradeToUnlock")}
             </a>
             <p className="text-xs text-slate-500">{t("proPrice")}</p>
-            <p className="text-[11px] text-slate-400">{t("proCancelAnytime")}</p>
+            <p className="text-[11px] text-slate-400">{t("proTrustLine")}</p>
           </section>
         )}
 
@@ -1363,7 +1391,7 @@ export default function Home() {
           {[
             { label: tCommon("home"), href: "./" },
             { label: tCommon("explore"), href: "./explore" },
-            { label: tCommon("trends"), href: "#" },
+            { label: tCommon("trends"), href: "./trends" },
             { label: tCommon("profile"), href: "./profile" }
           ].map((item, index) => {
             const isHome = index === 0;
