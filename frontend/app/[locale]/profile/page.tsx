@@ -465,7 +465,7 @@ export default function ProfilePage() {
         <div className="mx-auto flex max-w-md items-center justify-between px-6 pb-6 pt-3 text-[10px] font-bold uppercase tracking-tight text-[#1e293b]/40">
           {[
             { label: tCommon("home"), href: "./", active: false },
-            { label: tCommon("explore"), href: "#", active: false },
+            { label: tCommon("explore"), href: "./explore", active: false },
             { label: tCommon("trends"), href: "#", active: false },
             { label: tCommon("profile"), href: "./profile", active: true }
           ].map((item) => (

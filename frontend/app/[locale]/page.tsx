@@ -6,8 +6,6 @@ import { useLocale, useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 
 const RECORDS_KEY = "dra_records_v1";
-const GUEST_TRIAL_KEY_PREFIX = "dra_guest_trials_";
-const GUEST_TRIAL_LIMIT = 3;
 const POLAR_PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
 
 type RiskLabelKey = "low" | "medium" | "high";
@@ -59,10 +57,9 @@ const REGION_CONFIG: Record<
   }
 };
 
-const WASTE_WEIGHT = 0.7;
-const UNCERTAINTY_WEIGHT = 0.3;
-const PRICE_WEIGHT_IN_WASTE = 0.6;
-const TIME_WEIGHT_IN_WASTE = 0.4;
+const PRICE_WEIGHT = 0.5;
+const TIME_WEIGHT = 0.3;
+const PEOPLE_WEIGHT = 0.2;
 
 function formatLocalDate(date: Date) {
   const year = date.getFullYear();
@@ -126,46 +123,28 @@ function getTimeBandScore(timeMinutes: number) {
   return 80;
 }
 
-function computeWasteRisk(
-  totalPrice: number,
-  timeMinutes: number | null,
+function getPeopleBandScore(people: number) {
+  if (people <= 1) return 20;
+  if (people <= 2) return 40;
+  if (people <= 4) return 60;
+  return 80;
+}
+
+function computeRiskScore(
+  priceValue: number,
+  timeValue: number,
   people: number,
   baseOrderAmount: number
 ) {
   const safePeople = Math.max(1, people);
-  const perPersonPrice = totalPrice / safePeople;
+  const perPersonPrice = priceValue / safePeople;
   const priceScore = getPriceBandScore(perPersonPrice, baseOrderAmount);
-  if (timeMinutes === null) {
-    return priceScore;
-  }
-
-  const timeScore = getTimeBandScore(timeMinutes);
-
-  return Math.round(
-    priceScore * PRICE_WEIGHT_IN_WASTE + timeScore * TIME_WEIGHT_IN_WASTE
-  );
-}
-
-function computeUncertaintyRisk(menu: string) {
-  return menu.trim().length === 0 ? 50 : 0;
-}
-
-function computeRiskScore(
-  menu: string,
-  priceValue: number,
-  timeValue: number | null,
-  people: number,
-  baseOrderAmount: number
-) {
-  const wasteRisk = computeWasteRisk(
-    priceValue,
-    timeValue,
-    people,
-    baseOrderAmount
-  );
-  const uncertaintyRisk = computeUncertaintyRisk(menu);
+  const timeScore = getTimeBandScore(timeValue);
+  const peopleScore = getPeopleBandScore(safePeople);
   const total = Math.round(
-    wasteRisk * WASTE_WEIGHT + uncertaintyRisk * UNCERTAINTY_WEIGHT
+    priceScore * PRICE_WEIGHT +
+      timeScore * TIME_WEIGHT +
+      peopleScore * PEOPLE_WEIGHT
   );
 
   return Math.min(Math.max(total, 0), 100);
@@ -218,7 +197,6 @@ export default function Home() {
   const [records, setRecords] = useState<DecisionRecord[]>([]);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
-  const [guestTrialCount, setGuestTrialCount] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -273,22 +251,6 @@ export default function Home() {
       data.subscription.unsubscribe();
     };
   }, []);
-
-  useEffect(() => {
-    if (authUserId) {
-      setGuestTrialCount(null);
-      return;
-    }
-    try {
-      const count = Number.parseInt(
-        localStorage.getItem(getGuestTrialKey()) ?? "0",
-        10
-      );
-      setGuestTrialCount(Number.isNaN(count) ? 0 : count);
-    } catch {
-      setGuestTrialCount(null);
-    }
-  }, [authUserId]);
 
   useEffect(() => {
     const stored = localStorage.getItem(RECORDS_KEY);
@@ -443,12 +405,6 @@ export default function Home() {
     return t("riskLabelHigh");
   };
 
-  const getGuestTrialKey = () => {
-    const now = new Date();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    return `${GUEST_TRIAL_KEY_PREFIX}${now.getFullYear()}-${month}`;
-  };
-
   const regionConfig = REGION_CONFIG[region];
   const isPro = plan === "pro";
 
@@ -507,13 +463,18 @@ export default function Home() {
     setAiError(null);
     setWeeklyAiError(null);
 
-    if (!price.trim() || !people.trim()) {
+    if (!authUserId) {
+      setMessage(t("messageLoginRequired"));
+      return;
+    }
+
+    if (!menu.trim() || !price.trim() || !time.trim() || !people.trim()) {
       setMessage(t("messageMissing"));
       return;
     }
 
     const priceValue = Number.parseInt(price, 10);
-    const timeValue = time.trim().length > 0 ? Number.parseInt(time, 10) : null;
+    const timeValue = Number.parseInt(time, 10);
     const peopleValue = Number.parseInt(people, 10);
 
     if (
@@ -524,38 +485,12 @@ export default function Home() {
       setMessage(t("messageInvalid"));
       return;
     }
-    if (timeValue !== null && Number.isNaN(timeValue)) {
+    if (Number.isNaN(timeValue)) {
       setMessage(t("messageInvalid"));
       return;
     }
 
-    if (!authUserId) {
-      try {
-        const trialKey = getGuestTrialKey();
-        const currentCount = Number.parseInt(
-          localStorage.getItem(trialKey) ?? "0",
-          10
-        );
-        if (!Number.isNaN(currentCount) && currentCount >= GUEST_TRIAL_LIMIT) {
-          setGuestTrialCount(currentCount);
-          setMessage(t("messageTrials"));
-          return;
-        }
-        const nextCount = Number.isNaN(currentCount)
-          ? 1
-          : currentCount + 1;
-        localStorage.setItem(
-          trialKey,
-          String(nextCount)
-        );
-        setGuestTrialCount(nextCount);
-      } catch {
-        // If storage is unavailable, allow the guest trial without persisting.
-      }
-    }
-
     const computedScore = computeRiskScore(
-      menu,
       priceValue,
       timeValue,
       peopleValue,
@@ -910,19 +845,6 @@ export default function Home() {
                 {t("upgrade")}
               </a>
             </div>
-            {!authUserId && (
-              <div className="text-xs text-[#1e293b]/60">
-                <p>{t("messageGuestTrial")}</p>
-                {guestTrialCount !== null && (
-                  <p>
-                    {t("messageGuestRemaining", {
-                      remaining: Math.max(0, GUEST_TRIAL_LIMIT - guestTrialCount),
-                      limit: GUEST_TRIAL_LIMIT
-                    })}
-                  </p>
-                )}
-              </div>
-            )}
           </form>
 
           {recentMenus.length > 0 && (
@@ -1440,7 +1362,7 @@ export default function Home() {
         <div className="mx-auto flex max-w-md items-center justify-between px-6 pb-6 pt-3 text-[10px] font-bold uppercase tracking-tight text-[#1e293b]/40">
           {[
             { label: tCommon("home"), href: "./" },
-            { label: tCommon("explore"), href: "#" },
+            { label: tCommon("explore"), href: "./explore" },
             { label: tCommon("trends"), href: "#" },
             { label: tCommon("profile"), href: "./profile" }
           ].map((item, index) => {
