@@ -391,7 +391,7 @@ export default function ExplorePage() {
           {[
             { label: tCommon("home"), href: "./", active: false },
             { label: tCommon("explore"), href: "./explore", active: true },
-            { label: tCommon("trends"), href: "./trends", active: false },
+            { label: tCommon("community"), href: "./community", active: false },
             { label: tCommon("profile"), href: "./profile", active: false }
           ].map((item) => (
             <a

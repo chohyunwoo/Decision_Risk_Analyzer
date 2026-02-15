@@ -5,7 +5,7 @@ const SITE_URL =
 
 const LOCALES = ["ko", "en", "ja"] as const;
 
-const ROUTES = ["/", "/login", "/signup", "/terms", "/refund", "/privacy"];
+const ROUTES = ["/", "/community", "/login", "/signup", "/terms", "/refund", "/privacy"];
 
 function buildLocalePath(locale: string, route: string) {
   if (locale === "ko") return route;

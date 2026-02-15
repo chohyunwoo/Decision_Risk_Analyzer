@@ -1,8 +1,8 @@
 "use client";
 
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase/client";
 
 const emptyNotice = { type: "idle", message: "" } as const;
@@ -15,6 +15,8 @@ type FormState = {
 };
 
 export default function SignupPage() {
+  const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("Auth");
   const tCommon = useTranslations("Common");
   const [email, setEmail] = useState("");
@@ -26,6 +28,16 @@ export default function SignupPage() {
     notice: emptyNotice
   });
   const [oauthLoading, setOauthLoading] = useState(false);
+  const notifyExistingAccountAndRedirect = () => {
+    setState({
+      loading: false,
+      notice: {
+        type: "error",
+        message: t("alreadyRegisteredRedirectLogin")
+      }
+    });
+    window.setTimeout(() => router.push("/login"), 1200);
+  };
 
   const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -53,11 +65,55 @@ export default function SignupPage() {
       return;
     }
 
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const localePrefix = locale === "ko" ? "" : `/${locale}`;
+    const loginRedirectTo = `${siteUrl}${localePrefix}/login`;
+
     setState({ loading: true, notice: emptyNotice });
+
+    const normalizedEmail = email.trim().toLowerCase();
+    let checkedDuplicate = false;
+    try {
+      const checkResponse = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email: normalizedEmail })
+      });
+
+      if (checkResponse.ok) {
+        const checkPayload = (await checkResponse.json()) as { exists?: boolean };
+        checkedDuplicate = true;
+        if (checkPayload.exists) {
+          notifyExistingAccountAndRedirect();
+          return;
+        }
+      }
+    } catch {
+      // If check API fails, fallback checks below handle duplicate detection.
+    }
+
+    // Fallback: if credentials already work, this is definitely an existing account.
+    if (!checkedDuplicate) {
+      const { data: signInData, error: signInError } =
+        await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password
+        });
+      if (!signInError && signInData.session) {
+        await supabase.auth.signOut();
+        notifyExistingAccountAndRedirect();
+        return;
+      }
+    }
+
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
+        emailRedirectTo: loginRedirectTo,
         data: {
           nickname: nickname.trim()
         }
@@ -72,12 +128,21 @@ export default function SignupPage() {
       return;
     }
 
+    // Supabase can return user without session/identities for already-registered emails.
+    const identities = (data.user as { identities?: unknown[] } | null)?.identities;
+    const looksLikeDuplicate =
+      !data.session && Array.isArray(identities) && identities.length === 0;
+    if (looksLikeDuplicate) {
+      notifyExistingAccountAndRedirect();
+      return;
+    }
+
     if (!data.session) {
       setState({
         loading: false,
         notice: {
           type: "success",
-          message: t("signupSuccessVerify")
+          message: t("signupSuccessVerifyNeutral")
         }
       });
       return;
@@ -87,13 +152,22 @@ export default function SignupPage() {
       loading: false,
       notice: { type: "success", message: t("signupSuccess") }
     });
+    router.push("/");
   };
 
   const handleGoogleSignup = async () => {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const localePrefix = locale === "ko" ? "" : `/${locale}`;
+    const homeRedirectTo = `${siteUrl}${localePrefix}/`;
+
     setOauthLoading(true);
     setState((prev) => ({ ...prev, notice: emptyNotice }));
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google"
+      provider: "google",
+      options: {
+        redirectTo: homeRedirectTo
+      }
     });
     if (error) {
       setState((prev) => ({
@@ -195,6 +269,23 @@ export default function SignupPage() {
         >
           {state.notice.message}
         </p>
+      )}
+
+      {state.notice.type === "success" && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            className="inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            href="/login"
+          >
+            {t("loginButton")}
+          </Link>
+          <Link
+            className="inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            href="/login"
+          >
+            {t("forgotPassword")}
+          </Link>
+        </div>
       )}
 
       <div className="mt-6 flex flex-wrap items-center justify-between gap-2 text-sm text-[#1e293b]/70">

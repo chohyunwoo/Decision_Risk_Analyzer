@@ -466,7 +466,7 @@ export default function ProfilePage() {
           {[
             { label: tCommon("home"), href: "./", active: false },
             { label: tCommon("explore"), href: "./explore", active: false },
-            { label: tCommon("trends"), href: "./trends", active: false },
+            { label: tCommon("community"), href: "./community", active: false },
             { label: tCommon("profile"), href: "./profile", active: true }
           ].map((item) => (
             <a

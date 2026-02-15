@@ -998,12 +998,20 @@ export default function Home() {
                 <p className="mt-1 text-xs text-slate-600">
                   {t("guestCtaBody")}
                 </p>
-                <Link
-                  href="./login"
-                  className="mt-3 inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
-                >
-                  {t("guestCtaButton")}
-                </Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    href="./signup"
+                    className="inline-flex rounded-full bg-[#1152d4] px-3 py-1 text-xs font-semibold text-white"
+                  >
+                    {tCommon("signup")}
+                  </Link>
+                  <Link
+                    href="./login"
+                    className="inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+                  >
+                    {tCommon("login")}
+                  </Link>
+                </div>
               </div>
             )}
           </section>
@@ -1391,7 +1399,7 @@ export default function Home() {
           {[
             { label: tCommon("home"), href: "./" },
             { label: tCommon("explore"), href: "./explore" },
-            { label: tCommon("trends"), href: "./trends" },
+            { label: tCommon("community"), href: "./community" },
             { label: tCommon("profile"), href: "./profile" }
           ].map((item, index) => {
             const isHome = index === 0;

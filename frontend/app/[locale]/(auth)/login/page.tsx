@@ -109,10 +109,18 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = async () => {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const localePrefix = locale === "ko" ? "" : `/${locale}`;
+    const homeRedirectTo = `${siteUrl}${localePrefix}/`;
+
     setOauthLoading(true);
     setAuth((prev) => ({ ...prev, notice: emptyNotice }));
     const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google"
+      provider: "google",
+      options: {
+        redirectTo: homeRedirectTo
+      }
     });
     if (error) {
       setAuth((prev) => ({
