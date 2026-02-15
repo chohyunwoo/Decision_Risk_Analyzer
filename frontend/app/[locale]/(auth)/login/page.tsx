@@ -3,6 +3,7 @@
 import { useRouter } from "@/i18n/navigation";
 import { Link } from "@/i18n/navigation";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { supabase } from "@/lib/supabase/client";
 
@@ -19,6 +20,7 @@ type AuthState = {
 export default function LoginPage() {
   const router = useRouter();
   const locale = useLocale();
+  const searchParams = useSearchParams();
   const t = useTranslations("Auth");
   const tCommon = useTranslations("Common");
   const [email, setEmail] = useState("");
@@ -53,6 +55,14 @@ export default function LoginPage() {
       data.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get("verified") !== "1") return;
+    setAuth((prev) => ({
+      ...prev,
+      notice: { type: "success", message: t("signupSuccessVerify") }
+    }));
+  }, [searchParams, t]);
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

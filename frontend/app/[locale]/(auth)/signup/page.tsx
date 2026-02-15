@@ -68,7 +68,9 @@ export default function SignupPage() {
     const siteUrl =
       process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
     const localePrefix = locale === "ko" ? "" : `/${locale}`;
-    const loginRedirectTo = `${siteUrl}${localePrefix}/login`;
+    const webLoginRedirectTo = `${siteUrl}${localePrefix}/login?verified=1`;
+    const appLoginDeepLink = process.env.NEXT_PUBLIC_APP_LOGIN_DEEPLINK?.trim();
+    const loginRedirectTo = appLoginDeepLink || webLoginRedirectTo;
 
     setState({ loading: true, notice: emptyNotice });
 
