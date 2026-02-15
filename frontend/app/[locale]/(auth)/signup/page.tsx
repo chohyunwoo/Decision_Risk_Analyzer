@@ -70,7 +70,12 @@ export default function SignupPage() {
     const localePrefix = locale === "ko" ? "" : `/${locale}`;
     const webLoginRedirectTo = `${siteUrl}${localePrefix}/login?verified=1`;
     const appLoginDeepLink = process.env.NEXT_PUBLIC_APP_LOGIN_DEEPLINK?.trim();
-    const loginRedirectTo = appLoginDeepLink || webLoginRedirectTo;
+    const isNativeApp =
+      typeof window !== "undefined" &&
+      (!!(window as { ReactNativeWebView?: unknown }).ReactNativeWebView ||
+        !!(window as { Capacitor?: unknown }).Capacitor);
+    const loginRedirectTo =
+      isNativeApp && appLoginDeepLink ? appLoginDeepLink : webLoginRedirectTo;
 
     setState({ loading: true, notice: emptyNotice });
 
