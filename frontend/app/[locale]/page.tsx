@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase/client";
 import { useLocale, useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 
 const RECORDS_KEY = "dra_records_v1";
 const POLAR_PRODUCT_ID = "22e349c2-7a82-4082-8f5e-2debd5e31587";
@@ -170,6 +170,7 @@ function normalizeRiskLabelKey(value: unknown, score: number): RiskLabelKey {
 }
 
 export default function Home() {
+  const router = useRouter();
   const t = useTranslations("HomePage");
   const tCommon = useTranslations("Common");
   const locale = useLocale();
@@ -465,6 +466,7 @@ export default function Home() {
 
     if (!authUserId) {
       setMessage(t("messageLoginRequired"));
+      router.push("/login");
       return;
     }
 
@@ -1103,7 +1105,7 @@ export default function Home() {
             </div>
             <p className="text-sm text-slate-500">{t("weeklySummaryLocked")}</p>
             <a
-              href={checkoutUrl}
+              href={authUserId ? checkoutUrl : "./login"}
               className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
             >
               {t("upgradeToUnlock")}
@@ -1131,7 +1133,7 @@ export default function Home() {
               <p className="text-sm text-slate-500">{t("aiExplanationLocked")}</p>
               <div className="flex flex-col items-end gap-1">
                 <a
-                  href={checkoutUrl}
+                  href={authUserId ? checkoutUrl : "./login"}
                   className="rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
                 >
                   {t("upgradeToUnlock")}
@@ -1264,7 +1266,7 @@ export default function Home() {
             </div>
             <p className="text-sm text-slate-500">{t("calendarLocked")}</p>
             <a
-              href={checkoutUrl}
+              href={authUserId ? checkoutUrl : "./login"}
               className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
             >
               {t("upgradeToUnlock")}
@@ -1355,7 +1357,7 @@ export default function Home() {
             </div>
             <p className="text-sm text-slate-500">{t("recordsLocked")}</p>
             <a
-              href={checkoutUrl}
+              href={authUserId ? checkoutUrl : "./login"}
               className="w-fit rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
             >
               {t("upgradeToUnlock")}

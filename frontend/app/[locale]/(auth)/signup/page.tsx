@@ -28,16 +28,6 @@ export default function SignupPage() {
     notice: emptyNotice
   });
   const [oauthLoading, setOauthLoading] = useState(false);
-  const notifyExistingAccountAndRedirect = () => {
-    setState({
-      loading: false,
-      notice: {
-        type: "error",
-        message: t("alreadyRegisteredRedirectLogin")
-      }
-    });
-    window.setTimeout(() => router.push("/login"), 1200);
-  };
 
   const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -80,42 +70,6 @@ export default function SignupPage() {
     setState({ loading: true, notice: emptyNotice });
 
     const normalizedEmail = email.trim().toLowerCase();
-    let checkedDuplicate = false;
-    try {
-      const checkResponse = await fetch("/api/auth/check-email", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ email: normalizedEmail })
-      });
-
-      if (checkResponse.ok) {
-        const checkPayload = (await checkResponse.json()) as { exists?: boolean };
-        checkedDuplicate = true;
-        if (checkPayload.exists) {
-          notifyExistingAccountAndRedirect();
-          return;
-        }
-      }
-    } catch {
-      // If check API fails, fallback checks below handle duplicate detection.
-    }
-
-    // Fallback: if credentials already work, this is definitely an existing account.
-    if (!checkedDuplicate) {
-      const { data: signInData, error: signInError } =
-        await supabase.auth.signInWithPassword({
-          email: normalizedEmail,
-          password
-        });
-      if (!signInError && signInData.session) {
-        await supabase.auth.signOut();
-        notifyExistingAccountAndRedirect();
-        return;
-      }
-    }
-
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password,
@@ -139,12 +93,7 @@ export default function SignupPage() {
     const identities = (data.user as { identities?: unknown[] } | null)?.identities;
     const looksLikeDuplicate =
       !data.session && Array.isArray(identities) && identities.length === 0;
-    if (looksLikeDuplicate) {
-      notifyExistingAccountAndRedirect();
-      return;
-    }
-
-    if (!data.session) {
+    if (looksLikeDuplicate || !data.session) {
       setState({
         loading: false,
         notice: {
