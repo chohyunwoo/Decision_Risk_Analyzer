@@ -14,6 +14,8 @@ type FormState = {
   notice: Notice;
 };
 
+type SignupOutcome = "idle" | "verify" | "duplicate";
+
 export default function SignupPage() {
   const router = useRouter();
   const locale = useLocale();
@@ -28,6 +30,24 @@ export default function SignupPage() {
     notice: emptyNotice
   });
   const [oauthLoading, setOauthLoading] = useState(false);
+  const [signupOutcome, setSignupOutcome] = useState<SignupOutcome>("idle");
+  const [resendLoading, setResendLoading] = useState(false);
+
+  const getLoginRedirectTo = () => {
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
+    const localePrefix = locale === "ko" ? "" : `/${locale}`;
+    const webLoginRedirectTo = `${siteUrl}${localePrefix}/login?verified=1`;
+    const appLoginDeepLink = process.env.NEXT_PUBLIC_APP_LOGIN_DEEPLINK?.trim();
+    const isNativeApp =
+      typeof window !== "undefined" &&
+      (!!(window as { ReactNativeWebView?: unknown }).ReactNativeWebView ||
+        !!(window as { Capacitor?: unknown }).Capacitor);
+
+    return isNativeApp && appLoginDeepLink
+      ? appLoginDeepLink
+      : webLoginRedirectTo;
+  };
 
   const handleSignup = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -55,19 +75,10 @@ export default function SignupPage() {
       return;
     }
 
-    const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL ?? window.location.origin;
-    const localePrefix = locale === "ko" ? "" : `/${locale}`;
-    const webLoginRedirectTo = `${siteUrl}${localePrefix}/login?verified=1`;
-    const appLoginDeepLink = process.env.NEXT_PUBLIC_APP_LOGIN_DEEPLINK?.trim();
-    const isNativeApp =
-      typeof window !== "undefined" &&
-      (!!(window as { ReactNativeWebView?: unknown }).ReactNativeWebView ||
-        !!(window as { Capacitor?: unknown }).Capacitor);
-    const loginRedirectTo =
-      isNativeApp && appLoginDeepLink ? appLoginDeepLink : webLoginRedirectTo;
+    const loginRedirectTo = getLoginRedirectTo();
 
     setState({ loading: true, notice: emptyNotice });
+    setSignupOutcome("idle");
 
     const normalizedEmail = email.trim().toLowerCase();
     const { data, error } = await supabase.auth.signUp({
@@ -86,6 +97,7 @@ export default function SignupPage() {
         loading: false,
         notice: { type: "error", message: error.message }
       });
+      setSignupOutcome("idle");
       return;
     }
 
@@ -93,14 +105,27 @@ export default function SignupPage() {
     const identities = (data.user as { identities?: unknown[] } | null)?.identities;
     const looksLikeDuplicate =
       !data.session && Array.isArray(identities) && identities.length === 0;
-    if (looksLikeDuplicate || !data.session) {
+    if (looksLikeDuplicate) {
+      setState({
+        loading: false,
+        notice: {
+          type: "error",
+          message: t("signupDuplicateGuidance")
+        }
+      });
+      setSignupOutcome("duplicate");
+      return;
+    }
+
+    if (!data.session) {
       setState({
         loading: false,
         notice: {
           type: "success",
-          message: t("signupSuccessVerifyNeutral")
+          message: t("signupSuccessVerify")
         }
       });
+      setSignupOutcome("verify");
       return;
     }
 
@@ -108,7 +133,44 @@ export default function SignupPage() {
       loading: false,
       notice: { type: "success", message: t("signupSuccess") }
     });
+    setSignupOutcome("idle");
     router.push("/");
+  };
+
+  const handleResendVerification = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setState((prev) => ({
+        ...prev,
+        notice: { type: "error", message: t("resetMissingEmail") }
+      }));
+      return;
+    }
+
+    setResendLoading(true);
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo: getLoginRedirectTo()
+      }
+    });
+
+    if (error) {
+      setState((prev) => ({
+        ...prev,
+        notice: { type: "error", message: t("signupResendError") }
+      }));
+      setResendLoading(false);
+      return;
+    }
+
+    setState((prev) => ({
+      ...prev,
+      notice: { type: "success", message: t("signupResendSuccess") }
+    }));
+    setSignupOutcome("verify");
+    setResendLoading(false);
   };
 
   const handleGoogleSignup = async () => {
@@ -227,7 +289,26 @@ export default function SignupPage() {
         </p>
       )}
 
-      {state.notice.type === "success" && (
+      {signupOutcome === "verify" && (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4] disabled:cursor-not-allowed disabled:text-[#1152d4]/50"
+            onClick={handleResendVerification}
+            disabled={resendLoading}
+          >
+            {resendLoading ? tCommon("processing") : t("signupResendButton")}
+          </button>
+          <Link
+            className="inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
+            href="/login"
+          >
+            {t("loginButton")}
+          </Link>
+        </div>
+      )}
+
+      {signupOutcome === "duplicate" && (
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
             className="inline-flex rounded-full border border-[#1152d4]/20 px-3 py-1 text-xs font-semibold text-[#1152d4]"
