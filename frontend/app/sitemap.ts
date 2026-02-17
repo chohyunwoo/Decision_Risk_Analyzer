@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
-import { LOCALES, SITE_URL, languageAlternates, localePath } from "@/lib/seo";
+import { getSupabaseAdmin } from "@/lib/supabase/admin";
+import { SITE_URL, languageAlternates, localePath } from "@/lib/seo";
 
 const ROUTES: Array<{
   path: string;
@@ -15,13 +16,17 @@ const ROUTES: Array<{
   { path: "/privacy", changeFrequency: "monthly", priority: 0.5 }
 ];
 
-export default function sitemap(): MetadataRoute.Sitemap {
+type PostSitemapRow = {
+  id: string;
+  updated_at: string | null;
+  created_at: string | null;
+};
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
 
-  const entries: MetadataRoute.Sitemap = LOCALES.flatMap((locale) => {
-    const normalizedLocale = locale;
-    return ROUTES.map((route) => ({
-      url: `${SITE_URL}${localePath(normalizedLocale, route.path)}`,
+  const staticEntries: MetadataRoute.Sitemap = ROUTES.map((route) => ({
+      url: `${SITE_URL}${localePath("ko", route.path)}`,
       lastModified: now,
       changeFrequency: route.changeFrequency,
       priority: route.priority,
@@ -29,7 +34,32 @@ export default function sitemap(): MetadataRoute.Sitemap {
         languages: languageAlternates(route.path)
       }
     }));
+
+  let posts: PostSitemapRow[] = [];
+  try {
+    const supabase = getSupabaseAdmin();
+    const { data } = await supabase
+      .from("posts")
+      .select("id,updated_at,created_at")
+      .order("created_at", { ascending: false })
+      .limit(5000);
+    posts = (data as PostSitemapRow[] | null) ?? [];
+  } catch {
+    posts = [];
+  }
+
+  const dynamicPostEntries: MetadataRoute.Sitemap = posts.map((post) => {
+    const routePath = `/community/${post.id}`;
+    return {
+      url: `${SITE_URL}${localePath("ko", routePath)}`,
+      lastModified: post.updated_at ?? post.created_at ?? now.toISOString(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+      alternates: {
+        languages: languageAlternates(routePath)
+      }
+    };
   });
 
-  return entries;
+  return [...staticEntries, ...dynamicPostEntries];
 }
