@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Script from "next/script";
 import { routing } from "@/i18n/routing";
+import { AnalyticsScripts } from "@/components/AnalyticsScripts";
+import { CookieConsentBanner } from "@/components/CookieConsentBanner";
+import { CookieSettingsButton } from "@/components/CookieSettingsButton";
 import { LocaleCookie } from "@/components/LocaleCookie";
 import {
   SITE_NAME,
@@ -102,27 +105,7 @@ export default async function LocaleLayout({
   return (
     <html lang={locale}>
       <body>
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-G1QWJC7WQZ"
-          strategy="afterInteractive"
-        />
-        <Script id="gtag-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', 'G-G1QWJC7WQZ');
-          `}
-        </Script>
-        <Script id="clarity-init" strategy="afterInteractive">
-          {`
-            (function(c,l,a,r,i,t,y){
-              c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
-              t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
-              y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
-            })(window, document, "clarity", "script", "vgm3ujvbbf");
-          `}
-        </Script>
+        <AnalyticsScripts gaId="G-G1QWJC7WQZ" clarityId="vgm3ujvbbf" />
         <Script id="ld-json-website" type="application/ld+json">
           {JSON.stringify({
             "@context": "https://schema.org",
@@ -143,6 +126,8 @@ export default async function LocaleLayout({
           })}
         </Script>
         <LocaleCookie locale={locale} />
+        <CookieConsentBanner locale={locale} />
+        <CookieSettingsButton locale={locale} />
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>

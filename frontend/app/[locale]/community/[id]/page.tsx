@@ -316,6 +316,12 @@ export default function CommunityDetailPage() {
                   >
                     {likedByViewer ? t("likedButton") : t("likeButton")}
                   </button>
+                  <Link
+                    href={`/community/report?postId=${post.id}`}
+                    className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700"
+                  >
+                    Report
+                  </Link>
                   {isOwner && (
                     <>
                       <button

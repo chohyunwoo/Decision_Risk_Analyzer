@@ -177,21 +177,29 @@ export default function CommunityPage() {
           <p className="text-xs text-slate-500">
             {t("pageLabel", { page, totalPages })}
           </p>
-          {isSignedIn ? (
+          <div className="flex items-center gap-2">
             <Link
-              href="/community/new"
-              className="rounded-full bg-[#1152d4] px-3 py-1.5 text-xs font-semibold text-white"
+              href="/community/report"
+              className="rounded-full border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700"
             >
-              {t("writeButton")}
+              Report
             </Link>
-          ) : (
-            <Link
-              href="/login"
-              className="rounded-full border border-[#1152d4]/20 px-3 py-1.5 text-xs font-semibold text-[#1152d4]"
-            >
-              {t("loginToWrite")}
-            </Link>
-          )}
+            {isSignedIn ? (
+              <Link
+                href="/community/new"
+                className="rounded-full bg-[#1152d4] px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                {t("writeButton")}
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-full border border-[#1152d4]/20 px-3 py-1.5 text-xs font-semibold text-[#1152d4]"
+              >
+                {t("loginToWrite")}
+              </Link>
+            )}
+          </div>
         </section>
 
         <section className="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4">

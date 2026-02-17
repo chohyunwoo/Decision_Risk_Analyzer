@@ -106,7 +106,7 @@ const PRIVACY_COPY: Record<LocaleKey, PrivacyCopy> = {
   en: {
     home: "Home",
     title: "Privacy Policy",
-    updated: "Last updated: 2026-02-11",
+    updated: "Last updated: 2026-02-17",
     labels: {
       controller: "Data controller",
       service: "Service",
@@ -140,6 +140,7 @@ const PRIVACY_COPY: Record<LocaleKey, PrivacyCopy> = {
           "Cloudflare Pages/Edge: hosting and edge runtime",
           "OpenAI: AI text generation for eligible features",
           "Polar: billing and refund processing as Merchant of Record",
+          "Google Analytics and Microsoft Clarity: optional analytics only after user consent, used for product improvement",
           "We do not sell personal information for monetary consideration."
         ]
       },
@@ -172,14 +173,16 @@ const PRIVACY_COPY: Record<LocaleKey, PrivacyCopy> = {
         title: "7. Cookies and Local Storage",
         items: [
           "We use required storage technologies (including local storage) for login/session continuity and core functions.",
-          "This Service does not use third-party ad tracking cookies."
+          "Optional analytics cookies/scripts are activated only when you provide consent.",
+          "You can refuse or later withdraw analytics consent from the cookie banner state on this site."
         ]
       },
       {
         title: "8. Contact",
         items: [
           `Privacy inquiries: ${LEGAL_INFO.contactEmail}`,
-          `Operator: ${LEGAL_INFO.operatorName} (${LEGAL_INFO.operatorCountry})`
+          `Operator: ${LEGAL_INFO.operatorName} (${LEGAL_INFO.operatorCountry})`,
+          "Rights-infringement and content takedown requests can be submitted via the community report channel."
         ]
       }
     ]

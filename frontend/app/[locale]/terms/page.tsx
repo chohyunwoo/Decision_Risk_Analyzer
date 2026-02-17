@@ -102,7 +102,7 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
   en: {
     home: "Home",
     title: "Terms of Service",
-    updated: "Last updated: 2026-02-11",
+    updated: "Last updated: 2026-02-17",
     labels: {
       service: "Service",
       website: "Website",
@@ -140,7 +140,8 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
         items: [
           "You must comply with applicable laws and must not use the Service for unlawful, abusive, fraudulent, or security-violating activities.",
           "You may not reverse engineer, resell, or bulk-extract service content without prior written authorization.",
-          "Outputs are informational only and not medical, legal, or financial advice."
+          "Outputs are informational only and not medical, legal, or financial advice.",
+          "Community content may be reported for rights infringement, privacy exposure, harassment, spam, or illegal content; reported content may be restricted or removed after review."
         ]
       },
       {
@@ -170,7 +171,8 @@ const TERMS_COPY: Record<LocaleKey, TermsCopy> = {
         title: "8. Contact",
         items: [
           `Legal and support inquiries: ${LEGAL_INFO.contactEmail}`,
-          `Response target: ${LEGAL_INFO.supportResponseWindow}`
+          `Response target: ${LEGAL_INFO.supportResponseWindow}`,
+          "For legal takedown or rights-infringement notices, use the community report intake page or contact the support email above."
         ]
       }
     ]
