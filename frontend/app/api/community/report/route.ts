@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSupabaseAdmin } from "@/lib/supabase/admin";
 
+export const runtime = "edge";
+
 const reportSchema = z.object({
   postId: z.string().uuid(),
   reason: z.enum([
