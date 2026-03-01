@@ -1,141 +1,244 @@
 # Decision Risk Analyzer
 
-의사결정 리스크를 점수로 보여주는 서비스입니다.  
-현재 레포는 `Spring Boot 백엔드 + Next.js 프론트엔드 + Supabase(Auth/DB) + Polar 결제`로 구성됩니다.
+일상적인 소비 선택(식사, 배달 등)에 대해 가격, 시간, 인원 기준으로 "이 선택이 얼마나 비효율적인지"를 빠르게 판단해 주는 서비스입니다.
 
-## 현재 구현 기능
-- 리스크 점수 계산 API 및 기록 조회 (백엔드)
-- Supabase 인증 (이메일/비밀번호, Google 로그인)
-- 다국어 지원 (`ko`, `en`, `ja`)
-- 프로필 페이지 (기본 정보, 비밀번호 재설정, 계정 삭제)
-- 관리자 콘솔 (사용자 역할 조회/변경)
-- 커뮤니티 게시판
-- 게시글 작성/수정/삭제
-- 좋아요 중복 방지 (사용자당 게시글 1회)
-- 게시글 검색/필터 (`q`, `sort`, `period`, `page`)
-- Polar 결제/웹훅 기반 Pro 플랜 처리
-- Google Analytics + Microsoft Clarity 스크립트 연동
+현재 실제 서비스 흐름은 `Next.js 프론트엔드 + Supabase(Auth/DB) + Polar 결제 + OpenAI 보조 설명` 조합으로 운영되며, Spring Boot 백엔드는 별도 API/실험용 백엔드로 함께 관리되고 있습니다.
 
-## 프로젝트 구조
+## 현재 실제 사용 중인 기능
+
+### 핵심 분석
+- 가격, 시간, 인원, 지역(`KR`, `US`, `JP`)을 입력받아 리스크 점수를 계산
+- 메인 화면에서 즉시 점수 계산 및 리스크 레벨(`low`, `medium`, `high`) 표시
+- 지역별 기준 금액을 반영해 국가별 체감 가격 차이 대응
+
+### 인증 및 계정
+- Supabase Auth 기반 회원가입/로그인
+- 이메일 기반 인증 플로우
+- 프로필 페이지에서 기본 정보 조회
+- 계정 삭제 API 제공
+
+### 구독 및 권한 제어
+- 무료 플랜 / Pro 플랜 구분
+- Pro 전용 기능:
+  - AI 설명 생성
+  - 7일 요약 AI 코멘트
+  - 기록 목록
+  - 월간 캘린더 뷰
+- Polar Checkout 연동
+- Polar 웹훅 수신 후 `profiles.plan` 업데이트
+- 권한 반영 실패 시 환불 요청 처리
+- 결제 복구용 `restore` API 및 고객 포털 연결
+
+### AI 기능
+- 분석 결과에 대한 짧은 설명 생성
+- 최근 7일 기록 기준 주간 요약 생성
+- AI는 점수 계산을 바꾸지 않고, 설명 텍스트 생성에만 사용
+
+### 커뮤니티 및 운영 기능
+- 커뮤니티 글 좋아요
+- 사용자별 중복 좋아요 방지
+- 게시글 신고 접수 API
+- 관리자 전용 사용자 목록 조회
+- 관리자 전용 사용자 권한(`user` / `admin`) 변경
+
+### 국제화 및 운영
+- 다국어 지원: `ko`, `en`, `ja`
+- 레거시 도메인(`decision-risk-analyzer.pages.dev`) 접근 시 `riskly.store`로 리다이렉트
+- `robots.ts`, `sitemap.ts` 기반 SEO 메타 파일 생성
+
+## 실제 아키텍처
+
+### 프론트엔드 (주 서비스)
+- 경로: `frontend/`
+- 스택: Next.js 15, React 19, TypeScript, next-intl, Tailwind CSS 4
+- 역할:
+  - 메인 UI 렌더링
+  - 클라이언트 측 리스크 점수 계산
+  - Supabase 인증 상태 연동
+  - Polar 결제/포털/복구 API 호출
+  - OpenAI 설명 API 호출
+
+### 데이터 및 인증
+- Supabase
+- 역할:
+  - 사용자 인증
+  - 프로필(`profiles`) 관리
+  - 커뮤니티 좋아요 / 신고 데이터 저장
+
+### 결제
+- Polar
+- 역할:
+  - Checkout 생성
+  - 웹훅 기반 구독 상태 반영
+  - 필요 시 환불 처리
+
+### 보조 백엔드
+- 경로: `src/`
+- 스택: Spring Boot 3.3, Java 21, PostgreSQL, Spring Security, JPA
+- 역할:
+  - 결정형 리스크 분석 API
+  - 사용량 제한 / idempotency 처리
+  - 결제 상태 저장용 API
+- 비고:
+  - 저장소에 포함되어 있으나, 현재 메인 사용자 흐름은 `frontend/` 중심으로 동작
+
+## 주요 디렉터리
+
+- `frontend/`: 실제 서비스 UI 및 Edge API
 - `src/`: Spring Boot 백엔드
-- `frontend/`: Next.js 앱 (App Router)
-- `docs/`: Supabase SQL 및 아키텍처 문서
-- `functions/`: 서버리스 함수 코드
+- `docs/`: SQL 및 운영 문서
+- `functions/`: 별도 서버리스 함수 예제 코드
 
-## 빠른 시작
+## 프론트엔드 실행
 
-### 1) 백엔드 실행 (Spring Boot)
-1. PostgreSQL 준비
-```bash
-docker run --name dra-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dra -p 5432:5432 -d postgres:15-alpine
-```
-2. 환경 변수
-```bash
-export DB_URL=jdbc:postgresql://localhost:5432/dra
-export DB_USER=postgres
-export DB_PASSWORD=postgres
-export JWT_SECRET=dev-secret-please-change-32-bytes-minimum
-```
-3. 실행
-```bash
-./gradlew bootRun
-```
+### 1) 환경 변수
 
-### 2) 프론트엔드 실행 (Next.js)
-1. 환경 변수 `frontend/.env.local`
-```bash
+`frontend/.env.local` 파일에 아래 값을 설정합니다.
+
+```env
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_publishable_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
-NEXT_PUBLIC_SITE_URL=https://riskly.store
-NEXT_PUBLIC_OG_IMAGE=https://your-domain.com/og.png
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+NEXT_PUBLIC_OG_IMAGE=http://localhost:3000/og.png
+NEXT_PUBLIC_APP_LOGIN_DEEPLINK=
+
+OPENAI_API_KEY=your_openai_api_key
 
 POLAR_ACCESS_TOKEN=your_polar_access_token
 POLAR_SERVER=sandbox
-POLAR_SUCCESS_URL=https://your-domain.com/?checkout=success
-POLAR_RETURN_URL=https://your-domain.com/?checkout=cancel
+POLAR_SUCCESS_URL=http://localhost:3000/checkout/success
+POLAR_RETURN_URL=http://localhost:3000/checkout/cancel
 POLAR_WEBHOOK_SECRET=your_polar_webhook_secret
 ```
-2. 실행
+
+`NEXT_PUBLIC_SUPABASE_ANON_KEY`를 대신 사용해도 되지만, 현재 코드는 `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`를 우선 사용합니다.
+
+### 2) 실행
+
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
 
-## Supabase 설정
-1. 사용자/권한 관련 SQL 실행
-```sql
--- see docs/supabase-roles.sql
-```
-2. 커뮤니티 테이블 SQL 실행
-```sql
--- see docs/supabase-posts.sql
-```
-3. 관리자 계정 지정
-- Supabase `profiles.role = 'admin'`
+개발 서버: `http://localhost:3000`
 
-`docs/supabase-posts.sql`에는 아래가 포함됩니다.
-- `posts` 테이블
-- `post_likes` 테이블 (PK: `post_id, user_id`)
-- RLS 정책
-- `increment_post_like_count` 함수
+## 프론트엔드 배포
 
-## 커뮤니티 API
-- `POST /api/community/like`
-- `GET /api/community/like?postId=<uuid>`
+Cloudflare Pages 기준:
 
-동작 요약:
-- `POST`는 이미 좋아요한 사용자면 카운트를 증가시키지 않음
-- `GET`은 현재 로그인 사용자의 좋아요 여부 반환
-
-## 분석 스크립트
-- GA: `frontend/app/[locale]/layout.tsx`에 `gtag` 포함
-- Clarity: `frontend/app/[locale]/layout.tsx`에 Clarity init 스크립트 포함
-- 현재 Clarity 프로젝트 ID: `vgm3ujvbbf`
-
-## SEO
-- `frontend/app/robots.ts`, `frontend/app/sitemap.ts`에서 생성
-- 기본 OG: `frontend/public/og.png`, `frontend/public/og.svg`
-
-## Cloudflare Pages 배포
 - Build Command: `cd frontend && npm install && npm run pages:build`
 - Build Output Directory: `frontend/.vercel/output/static`
 - Compatibility Flag: `nodejs_compat`
 
-## Polar 웹훅
-- Endpoint: `https://<your-domain>/api/polar/webhook`
-- 이벤트: `order.paid`
-- 필수 스코프: `checkouts:write`
-- 자동 환불 사용 시: `refunds:write`
+## Supabase 준비
 
-## API 예시 (백엔드)
-### POST `/api/risk/analyze`
+필수로 아래 SQL 문서를 적용해야 합니다.
+
+- 권한/역할 관련: `docs/supabase-roles.sql`
+- 커뮤니티 게시글/좋아요 관련: `docs/supabase-posts.sql`
+- 신고 테이블 관련: `frontend/docs/community-reports-schema.sql`
+
+실제 코드에서 사용하는 주요 테이블/필드:
+
+- `profiles`
+  - `id`
+  - `email`
+  - `name`
+  - `nickname`
+  - `role`
+  - `plan`
+  - `polar_customer_id`
+  - `polar_order_id`
+- `posts`
+- `post_likes`
+- `community_reports`
+
+## 주요 API (현재 프론트엔드)
+
+### 인증/계정
+- `POST /api/account/delete`
+
+### AI
+- `POST /api/ai/explain`
+- `POST /api/ai/weekly`
+
+### 결제
+- `GET /api/polar/checkout`
+- `POST /api/polar/webhook`
+- `POST /api/polar/restore`
+- `GET /api/polar/portal`
+
+### 커뮤니티
+- `POST /api/community/like`
+- `GET /api/community/like?postId=<uuid>`
+- `POST /api/community/report`
+
+### 관리자
+- `GET /api/admin/users`
+- `POST /api/admin/users`
+
+## Spring Boot 백엔드 실행 (선택)
+
+현재 메인 서비스는 프론트엔드 중심이지만, 백엔드 API를 별도로 실행하려면 다음과 같이 설정합니다.
+
+### 1) PostgreSQL 준비
+
 ```bash
-curl -X POST http://localhost:8080/api/risk/analyze \
-  -H "Authorization: Bearer <JWT>" \
-  -H "Idempotency-Key: 123e4567-e89b-12d3-a456-426614174000" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "region": "KR",
-    "priceTotal": 28000,
-    "people": 2,
-    "timeMinutes": 35,
-    "menu": "김치찌개",
-    "link": "https://example.com/store/123"
-  }'
+docker run --name dra-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=dra -p 5432:5432 -d postgres:15-alpine
 ```
 
-### GET `/api/risk/records`
+### 2) 환경 변수
+
 ```bash
-curl -X GET "http://localhost:8080/api/risk/records?page=1&size=20" \
-  -H "Authorization: Bearer <JWT>"
+export DB_URL=jdbc:postgresql://localhost:5432/dra
+export DB_USER=postgres
+export DB_PASSWORD=postgres
+export JWT_SECRET=dev-secret-please-change-32-bytes-minimum
+export OPENAI_API_KEY=your_openai_api_key
+export OPENAI_MODEL=gpt-5.2
+export OPENAI_TIMEOUT_SECONDS=8
 ```
 
-### GET `/api/users/me`
-```bash
-curl -X GET http://localhost:8080/api/users/me \
-  -H "Authorization: Bearer <JWT>"
+Windows PowerShell:
+
+```powershell
+$env:DB_URL="jdbc:postgresql://localhost:5432/dra"
+$env:DB_USER="postgres"
+$env:DB_PASSWORD="postgres"
+$env:JWT_SECRET="dev-secret-please-change-32-bytes-minimum"
+$env:OPENAI_API_KEY="your_openai_api_key"
+$env:OPENAI_MODEL="gpt-5.2"
+$env:OPENAI_TIMEOUT_SECONDS="8"
 ```
 
+### 3) 실행
+
+```bash
+./gradlew bootRun
+```
+
+기본 포트: `http://localhost:8080`
+
+## 백엔드 테스트
+
+통합 테스트는 Testcontainers + PostgreSQL 기반으로 작성되어 있습니다.
+
+```bash
+./gradlew test
+```
+
+검증 내용 예시:
+
+- 동일 입력에 대한 결정형 점수 유지
+- 같은 idempotency key 재요청 시 중복 차감 방지
+- 동시 요청 시 무료 횟수 과차감 방지
+- Pro 권한 사용자는 제한 없이 분석 가능
+
+## 참고
+
+- 메인 화면의 현재 리스크 계산은 프론트엔드에서 수행됩니다.
+- Spring Boot의 `RiskService`/`RiskEngine`은 별도 백엔드 분석 흐름으로 유지되고 있습니다.
+- AI 기능은 설명 생성 전용이며, 점수 산정 로직을 변경하지 않습니다.
